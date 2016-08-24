@@ -24,10 +24,10 @@ Client.load({
 	application: "invoices"
 }).then((config) => {
 	// Look for a key
-	const value1 = config.getValue("this.is.a.key");
+	const value1 = config.get("this.is.a.key");
 
-	// Using a prefix, this is equivalent to .getValue("this.is.another.key");
-	const value2 = config.getValue("this.is", "another.key");
+	// Using a prefix, this is equivalent to .get("this.is.another.key");
+	const value2 = config.get("this.is", "another.key");
 });
 
 ```

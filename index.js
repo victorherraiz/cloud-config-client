@@ -6,7 +6,7 @@ const ClientRequest = http.ClientRequest;
 
 function build(data) {
     return {
-        getValue (prefix, key) {
+        get (prefix, key) {
             const fk = key ? prefix + "." + key : prefix;
             for (let item of data.propertySources) {
                 const value = item.source[fk];

@@ -38,12 +38,12 @@ server.listen(PORT, () => {
         endpoint: `http://localhost:${PORT}` ,
         application: "application"
     }).then((config) => {
-        assert.strictEqual(config.getValue("key01"), "value01");
-        assert.strictEqual(config.getValue("key02"), 2);
-        assert.strictEqual(config.getValue("key03"), null);
-        assert.strictEqual(config.getValue("missing"), undefined);
-        assert.strictEqual(config.getValue("key04.key01"), 42);
-        assert.strictEqual(config.getValue("key04", "key01"), 42);
+        assert.strictEqual(config.get("key01"), "value01");
+        assert.strictEqual(config.get("key02"), 2);
+        assert.strictEqual(config.get("key03"), null);
+        assert.strictEqual(config.get("missing"), undefined);
+        assert.strictEqual(config.get("key04.key01"), 42);
+        assert.strictEqual(config.get("key04", "key01"), 42);
         console.log("OK :D");
     }).catch((e) => {
         console.error(e);
