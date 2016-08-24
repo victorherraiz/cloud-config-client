@@ -1,6 +1,8 @@
 Spring Cloud Config Client for NodeJS
 =====================================
 
+[![Build Status](https://travis-ci.org/victorherraiz/cloud-config-client.svg?branch=master)](https://travis-ci.org/victorherraiz/cloud-config-client)
+
 Requires: NodeJS 4+
 
 Feature request are welcome.
