@@ -1,0 +1,14 @@
+{
+  "name": "cloud-config-client",
+  "version": "0.0.1",
+  "description": "Cloud Config nodejs client",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "author": "Víctor Herraiz Posada <victor.herraiz@gmail.com> (https://github.com/victorherraiz)",
+  "license": "MIT",
+  "dependencies": {
+    "request": "^2.74.0"
+  }
+}
