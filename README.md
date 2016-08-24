@@ -5,7 +5,14 @@ Spring Cloud Config Client for NodeJS
 
 Requires: NodeJS 4+
 
-Feature request are welcome.
+Feature requests are welcome.
+
+
+Install
+-------
+
+    npm install cloud-config-client --save
+
 
 Usage
 -----
@@ -36,5 +43,5 @@ const value2 = config.getValue("this.is", "another.key");
 References
 ----------
 
-* [Spring cloud config](http://cloud.spring.io/spring-cloud-config/)
+* [Spring Cloud Config](http://cloud.spring.io/spring-cloud-config/)
 

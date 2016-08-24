@@ -47,6 +47,7 @@ server.listen(PORT, () => {
         console.log("OK :D");
     }).catch((e) => {
         console.error(e);
+        process.exitCode = 1;
     }).then(() => {
         server.close();
     });

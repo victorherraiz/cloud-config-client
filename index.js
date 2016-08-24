@@ -4,26 +4,18 @@ const http = require("http");
 const URL = require("url");
 const ClientRequest = http.ClientRequest;
 
-class Configuration {
-
-    constructor (data) {
-        const map = new Map();
-        data.propertySources.forEach((properties) => {
-            const source = properties.source;
-            Object.keys(source).forEach((key) => {
-                if (!map.has(key)) {
-                    map.set(key, source[key]);
+function build(data) {
+    return {
+        getValue (prefix, key) {
+            const fk = key ? prefix + "." + key : prefix;
+            for (let item of data.propertySources) {
+                const value = item.source[fk];
+                if (value !== undefined) {
+                    return value;
                 }
-            });
-        })
-        this._data = data;
-        this._map = map;
+            }
+        }
     }
-
-    getValue (prefix, key) {
-        return this._map.get(key ? prefix + "." + key : prefix);
-    }
-
 }
 
 function load(config) {
@@ -35,7 +27,7 @@ function load(config) {
         const path = "/" +
             encodeURIComponent(app) + "/" +
             encodeURIComponent(profiles) +
-            label ? "/" + encodeURIComponent(label) : "";
+            (label ? "/" + encodeURIComponent(label) : "");
         const req = http.request({
             protocol: endpoint.protocol,
             hostname: endpoint.hostname,
@@ -50,7 +42,7 @@ function load(config) {
             res.on("data", (data) => {
                 response += data;
             });
-            res.on("end", () => resolve(new Configuration(JSON.parse(response))));
+            res.on("end", () => resolve(build(JSON.parse(response))));
         });
         req.end();
     });
