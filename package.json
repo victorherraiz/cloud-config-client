@@ -1,6 +1,6 @@
 {
   "name": "cloud-config-client",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Cloud Config nodejs client",
   "main": "index.js",
   "scripts": {
