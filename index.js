@@ -3,6 +3,7 @@
 const http = require("http");
 const URL = require("url");
 const ClientRequest = http.ClientRequest;
+const DEFAULT_URL = URL.parse("http://localhost:8888");
 
 function build(data) {
     return {
@@ -20,7 +21,7 @@ function build(data) {
 
 function load(config) {
     return new Promise((resolve, reject) => {
-        const endpoint = URL.parse(config.endpoint);
+        const endpoint = config.endpoint ? URL.parse(config.endpoint) : DEFAULT_URL;
         const profiles = config.profiles ? config.profiles.join(",") : "default";
         const label = config.label;
         const app = config.application;
@@ -35,7 +36,7 @@ function load(config) {
             path: path
         }, (res) => {
             if (res.statusCode !== 200) {
-                return reject(new Error("Invalid response"));
+                return reject(new Error("Invalid response: " + res.statusCode));
             }
             let response = "";
             res.setEncoding("utf8");

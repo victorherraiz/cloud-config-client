@@ -20,7 +20,6 @@ Usage
 ```js
 const Client = require("cloud-config-client");
 Client.load({
-	endpoint: "http://localhost:8888",
 	application: "invoices"
 }).then((config) => {
 	// Look for a key
@@ -34,10 +33,10 @@ Client.load({
 
 ### Client `load` options
 
-* `endpoint` (string, mandatory): Config server URL
+* `endpoint` (string, optional, default: `http://localhost:8888`): Config server URL
 * `application` (string, mandatory): Load configuration for this app
 * `profiles` (string array, optional, default: `["default"]`)
-* `label` (string array, optional, default: `null`)
+* `label` (string, optional, default: `null`)
 
 
 References
