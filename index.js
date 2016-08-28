@@ -15,38 +15,64 @@ function build(data) {
                     return value;
                 }
             }
+        },
+        toString(spaces) {
+            return JSON.stringify(data, null, spaces);
         }
     }
 }
 
-function load(config) {
-    return new Promise((resolve, reject) => {
-        const endpoint = config.endpoint ? URL.parse(config.endpoint) : DEFAULT_URL;
-        const profiles = config.profiles ? config.profiles.join(",") : "default";
-        const label = config.label;
-        const app = config.application;
+function loadWithCallback(options, cb) {
+    const endpoint = options.endpoint ? URL.parse(options.endpoint) : DEFAULT_URL;
+        const profiles = options.profiles ? options.profiles.join(",") : "default";
+        const label = options.label;
+        const app = options.application;
         const path = "/" +
             encodeURIComponent(app) + "/" +
             encodeURIComponent(profiles) +
             (label ? "/" + encodeURIComponent(label) : "");
-        const req = http.request({
+        http.request({
             protocol: endpoint.protocol,
             hostname: endpoint.hostname,
             port: endpoint.port,
             path: path
         }, (res) => {
             if (res.statusCode !== 200) {
-                return reject(new Error("Invalid response: " + res.statusCode));
+                res.resume(); // it consumes response
+                return cb(new Error("Invalid response: " + res.statusCode));
             }
             let response = "";
             res.setEncoding("utf8");
             res.on("data", (data) => {
                 response += data;
             });
-            res.on("end", () => resolve(build(JSON.parse(response))));
+            res.on("end", () => {
+                try {
+                    const body = JSON.parse(response);
+                    cb(null, build(body));
+                } catch (e) {
+                    cb(e);
+                }
+            });
+        }).on("error", cb).end();
+}
+
+function loadWithPromise(options) {
+    return new Promise((resolve, reject) => {
+        loadWithCallback(options, (error, cfg) => {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(cfg);
+            }
         });
-        req.end();
     });
-};
+}
+
+function load(options, cb) {
+    return typeof cb === "function" ?
+        loadWithCallback(options, cb) :
+        loadWithPromise(options);
+}
 
 module.exports = { load }

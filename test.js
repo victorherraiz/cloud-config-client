@@ -26,7 +26,7 @@ const DATA = {
 };
 
 const server = http.createServer((req, res) => {
-  res.end(JSON.stringify(DATA));
+    res.end(JSON.stringify(DATA));
 });
 
 server.on("clientError", (err, socket) => {
@@ -35,7 +35,7 @@ server.on("clientError", (err, socket) => {
 
 server.listen(PORT, () => {
     Client.load({
-        endpoint: `http://localhost:${PORT}` ,
+        endpoint: "http://localhost:" + PORT,
         application: "application"
     }).then((config) => {
         assert.strictEqual(config.get("key01"), "value01");
