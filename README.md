@@ -44,6 +44,7 @@ Parameters:
     * `application` (string, mandatory): Load configuration for this app
     * `profiles` (string array, optional, default: `["default"]`)
     * `label` (string, optional, default: `null`)
+    * `basicAuthentication` (json, optional, default `null`): Basic Authentication for access config server. Ex: `{username: "username", password: "password"}`
 * cb (function, optional): node style callback, if missing the method will return a promise.
 
 Returns a configuration object, use `get` method to query values.
