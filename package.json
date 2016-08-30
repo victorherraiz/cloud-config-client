@@ -1,12 +1,16 @@
 {
   "name": "cloud-config-client",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Spring Cloud Config Client for NodeJS",
   "main": "index.js",
   "scripts": {
     "test": "node test.js"
   },
-  "keywords": ["Spring Cloud Config", "configuration", "client"],
+  "keywords": [
+    "Spring Cloud Config",
+    "configuration",
+    "client"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/victorherraiz/cloud-config-client.git"
