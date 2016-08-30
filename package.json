@@ -6,6 +6,7 @@
   "scripts": {
     "test": "node test.js"
   },
+  "keywords": ["Spring Cloud Config", "configuration", "client"],
   "repository": {
     "type": "git",
     "url": "https://github.com/victorherraiz/cloud-config-client.git"
