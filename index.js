@@ -27,6 +27,12 @@ function loadWithCallback(options, cb) {
         const profiles = options.profiles ? options.profiles.join(",") : "default";
         const label = options.label;
         const app = options.application;
+        const headers = {};
+        const basicAuthentication = options.basicAuthentication;
+        if(basicAuthentication && basicAuthentication.username && basicAuthentication.password) {
+            headers['authorization'] = 'Basic ' + new Buffer(basicAuthentication.username + ':' + basicAuthentication.password).toString('base64');
+        }
+
         const path = "/" +
             encodeURIComponent(app) + "/" +
             encodeURIComponent(profiles) +
@@ -35,7 +41,8 @@ function loadWithCallback(options, cb) {
             protocol: endpoint.protocol,
             hostname: endpoint.hostname,
             port: endpoint.port,
-            path: path
+            path: path,
+            headers: headers
         }, (res) => {
             if (res.statusCode !== 200) {
                 res.resume(); // it consumes response
