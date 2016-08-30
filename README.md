@@ -18,26 +18,35 @@ Usage
 -----
 
 ```js
-const Client = require("cloud-config-client");
-Client.load({
-	application: "invoices"
+const client = require("cloud-config-client");
+client.load({
+    application: "invoices"
 }).then((config) => {
-	// Look for a key
-	const value1 = config.get("this.is.a.key");
+    // Look for a key
+    const value1 = config.get("this.is.a.key");
 
-	// Using a prefix, this is equivalent to .get("this.is.another.key");
-	const value2 = config.get("this.is", "another.key");
+    // Using a prefix, this is equivalent to .get("this.is.another.key");
+    const value2 = config.get("this.is", "another.key");
 });
 
 ```
 
-### Client `load` options
+### `load` function
 
-* `endpoint` (string, optional, default: `http://localhost:8888`): Config server URL
-* `application` (string, mandatory): Load configuration for this app
-* `profiles` (string array, optional, default: `["default"]`)
-* `label` (string, optional, default: `null`)
+    const promise = client.load(options);
+    // or
+    client.load(options, function(error, cfg) { ... });
 
+Parameters:
+
+* options (object, mandatory):
+    * `endpoint` (string, optional, default: `http://localhost:8888`): Config server URL
+    * `application` (string, mandatory): Load configuration for this app
+    * `profiles` (string array, optional, default: `["default"]`)
+    * `label` (string, optional, default: `null`)
+* cb (function, optional): node style callback, if missing the method will return a promise.
+
+Returns a configuration object, use `get` method to query values.
 
 References
 ----------
