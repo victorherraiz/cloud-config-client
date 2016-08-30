@@ -4,6 +4,8 @@ const Client = require(".");
 const http = require("http");
 const assert = require("assert");
 const PORT = 15023;
+const ENDPOINT = "http://localhost:" + PORT;
+const AUTH = "Basic dXNlcm5hbWU6cGFzc3dvcmQ=";
 
 const DATA = {
     name: "application",
@@ -25,7 +27,12 @@ const DATA = {
     }]
 };
 
+let lastURL = null;
+let lastHeaders = null;
+
 const server = http.createServer((req, res) => {
+    lastURL = req.url;
+    lastHeaders = req.headers;
     res.end(JSON.stringify(DATA));
 });
 
@@ -33,23 +40,67 @@ server.on("clientError", (err, socket) => {
   socket.end("HTTP/1.1 400 Bad Request\r\n\r\n");
 });
 
-server.listen(PORT, () => {
-    Client.load({
-        endpoint: "http://localhost:" + PORT,
+function basicTest() {
+    return Client.load({
+        endpoint: ENDPOINT,
+        profiles: ["test", "timeout"],
         application: "application"
     }).then((config) => {
+        assert.strictEqual(lastURL, "/application/test%2Ctimeout");
         assert.strictEqual(config.get("key01"), "value01");
         assert.strictEqual(config.get("key02"), 2);
         assert.strictEqual(config.get("key03"), null);
         assert.strictEqual(config.get("missing"), undefined);
         assert.strictEqual(config.get("key04.key01"), 42);
         assert.strictEqual(config.get("key04", "key01"), 42);
-        console.log("OK :D");
-    }).catch((e) => {
+    });
+}
+
+function explicitAuth() {
+    return Client.load({
+        endpoint: ENDPOINT,
+        application: "application",
+        auth: { user: "username", pass: "password" }
+    }).then((config) => {
+        assert.strictEqual(lastHeaders.authorization, AUTH);
+        assert.strictEqual(lastURL, "/application/default");
+        assert.strictEqual(config.get("key02"), 2);
+    });
+}
+
+function implicitAuth() {
+    return Client.load({
+        endpoint: "http://username:password@localhost:" + PORT,
+        application: "application"
+    }).then((config) => {
+        assert.strictEqual(lastHeaders.authorization, AUTH);
+        assert.strictEqual(lastURL, "/application/default");
+        assert.strictEqual(config.get("key02"), 2);
+    });
+}
+
+function labelTest() {
+    return Client.load({
+        endpoint: ENDPOINT,
+        application: "application",
+        label: "develop"
+    }).then((config) => {
+        assert.strictEqual(lastURL, "/application/default/develop");
+        assert.strictEqual(config.get("key02"), 2);
+    });
+}
+
+server.listen(PORT, () => {
+    Promise.resolve()
+    .then(basicTest)
+    .then(explicitAuth)
+    .then(implicitAuth)
+    .then(labelTest)
+    .then(() => console.log("OK :D"))
+    .catch((e) => {
         console.error(e);
         process.exitCode = 1;
     }).then(() => {
         server.close();
     });
 });
-

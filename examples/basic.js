@@ -1,6 +1,6 @@
 "use strict";
 
-const client = require(".");
+const client = require("..");
 const options = {
     application: "demo",
     profiles: ["test", "timeout"]

@@ -22,46 +22,48 @@ function build(data) {
     }
 }
 
+function getAuth(auth, url) {
+    if (auth && auth.user && auth.pass) {
+        return auth.user + ":" + auth.pass;
+    }
+    return url.auth;
+}
+
+function getPath(application, profiles, label) {
+    const profilesStr = profiles ? profiles.join(",") : "default";
+    return "/" +
+        encodeURIComponent(application) + "/" +
+        encodeURIComponent(profilesStr) +
+        (label ? "/" + encodeURIComponent(label) : "");
+}
+
 function loadWithCallback(options, cb) {
     const endpoint = options.endpoint ? URL.parse(options.endpoint) : DEFAULT_URL;
-        const profiles = options.profiles ? options.profiles.join(",") : "default";
-        const label = options.label;
-        const app = options.application;
-        const headers = {};
-        const basicAuthentication = options.basicAuthentication;
-        if(basicAuthentication && basicAuthentication.username && basicAuthentication.password) {
-            headers['authorization'] = 'Basic ' + new Buffer(basicAuthentication.username + ':' + basicAuthentication.password).toString('base64');
+    http.request({
+        protocol: endpoint.protocol,
+        hostname: endpoint.hostname,
+        port: endpoint.port,
+        path: getPath(options.application, options.profiles, options.label),
+        auth: getAuth(options.auth, endpoint),
+    }, (res) => {
+        if (res.statusCode !== 200) { //OK
+            res.resume(); // it consumes response
+            return cb(new Error("Invalid response: " + res.statusCode));
         }
-
-        const path = "/" +
-            encodeURIComponent(app) + "/" +
-            encodeURIComponent(profiles) +
-            (label ? "/" + encodeURIComponent(label) : "");
-        http.request({
-            protocol: endpoint.protocol,
-            hostname: endpoint.hostname,
-            port: endpoint.port,
-            path: path,
-            headers: headers
-        }, (res) => {
-            if (res.statusCode !== 200) {
-                res.resume(); // it consumes response
-                return cb(new Error("Invalid response: " + res.statusCode));
+        let response = "";
+        res.setEncoding("utf8");
+        res.on("data", (data) => {
+            response += data;
+        });
+        res.on("end", () => {
+            try {
+                const body = JSON.parse(response);
+                cb(null, build(body));
+            } catch (e) {
+                cb(e);
             }
-            let response = "";
-            res.setEncoding("utf8");
-            res.on("data", (data) => {
-                response += data;
-            });
-            res.on("end", () => {
-                try {
-                    const body = JSON.parse(response);
-                    cb(null, build(body));
-                } catch (e) {
-                    cb(e);
-                }
-            });
-        }).on("error", cb).end();
+        });
+    }).on("error", cb).end();
 }
 
 function loadWithPromise(options) {
