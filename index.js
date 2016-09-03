@@ -29,21 +29,22 @@ function getAuth(auth, url) {
     return url.auth;
 }
 
-function getPath(application, profiles, label) {
+function getPath(name, profiles, label) {
     const profilesStr = profiles ? profiles.join(",") : "default";
     return "/" +
-        encodeURIComponent(application) + "/" +
+        encodeURIComponent(name) + "/" +
         encodeURIComponent(profilesStr) +
         (label ? "/" + encodeURIComponent(label) : "");
 }
 
 function loadWithCallback(options, cb) {
     const endpoint = options.endpoint ? URL.parse(options.endpoint) : DEFAULT_URL;
+    const name = options.name || options.application;
     http.request({
         protocol: endpoint.protocol,
         hostname: endpoint.hostname,
         port: endpoint.port,
-        path: getPath(options.application, options.profiles, options.label),
+        path: getPath(name, options.profiles, options.label),
         auth: getAuth(options.auth, endpoint),
     }, (res) => {
         if (res.statusCode !== 200) { //OK

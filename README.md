@@ -43,7 +43,8 @@ Parameters:
 
 * options (object, mandatory):
     * `endpoint` (string, optional, default: `http://localhost:8888`): Config server URL
-    * `application` (string, mandatory): Load configuration for this app
+    * `application` (deprecated: use name): Load configuration for this app
+    * `name` (string, mandatory): Load the configuration with this name
     * `profiles` (string array, optional, default: `["default"]`)
     * `label` (string, optional)
     * `auth` (object, optional): Basic Authentication for access config server (e.g.: `{ user: "username", pass: "password"}`). `endpoint` accepts also basic auth (e.g. `http://user:pass@localhost:8888`)

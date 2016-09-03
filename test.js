@@ -44,7 +44,7 @@ function basicTest() {
     return Client.load({
         endpoint: ENDPOINT,
         profiles: ["test", "timeout"],
-        application: "application"
+        name: "application"
     }).then((config) => {
         assert.strictEqual(lastURL, "/application/test%2Ctimeout");
         assert.strictEqual(config.get("key01"), "value01");
@@ -53,6 +53,16 @@ function basicTest() {
         assert.strictEqual(config.get("missing"), undefined);
         assert.strictEqual(config.get("key04.key01"), 42);
         assert.strictEqual(config.get("key04", "key01"), 42);
+    });
+}
+
+function deprecatedTest() {
+    return Client.load({
+        endpoint: ENDPOINT,
+        profiles: ["test", "timeout"],
+        application: "application"
+    }).then((config) => {
+        assert.strictEqual(lastURL, "/application/test%2Ctimeout");
     });
 }
 
@@ -93,6 +103,7 @@ function labelTest() {
 server.listen(PORT, () => {
     Promise.resolve()
     .then(basicTest)
+    .then(deprecatedTest)
     .then(explicitAuth)
     .then(implicitAuth)
     .then(labelTest)
