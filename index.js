@@ -29,9 +29,11 @@ function getAuth(auth, url) {
     return url.auth;
 }
 
-function getPath(name, profiles, label) {
+function getPath(name, profiles, label, contextPath) {
     const profilesStr = profiles ? profiles.join(",") : "default";
+    const contextSrt = contextPath ? (encodeURIComponent(contextPath) + "/") : "";
     return "/" +
+        contextSrt +
         encodeURIComponent(name) + "/" +
         encodeURIComponent(profilesStr) +
         (label ? "/" + encodeURIComponent(label) : "");
@@ -44,7 +46,7 @@ function loadWithCallback(options, cb) {
         protocol: endpoint.protocol,
         hostname: endpoint.hostname,
         port: endpoint.port,
-        path: getPath(name, options.profiles, options.label),
+        path: getPath(name, options.profiles, options.label, options.contextPath),
         auth: getAuth(options.auth, endpoint),
     }, (res) => {
         if (res.statusCode !== 200) { //OK
