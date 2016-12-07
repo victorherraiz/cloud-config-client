@@ -50,6 +50,7 @@ Parameters:
     * `auth` (object, optional): Basic Authentication for access config server (e.g.: `{ user: "username", pass: "password"}`). `endpoint` accepts also basic auth (e.g. `http://user:pass@localhost:8888`)
         * `user` (string)
         * `pass` (string)
+    * `contextPath` (string, optional): Some config servers use contextPath, if needed it can be used as {contextPath: 'config-server'}
 * cb (function, optional): node style callback, if missing the method will return a promise.
 
 Returns a configuration object, use `get` method to query values and `forEach` to iterate over them.
