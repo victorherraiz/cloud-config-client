@@ -16,6 +16,19 @@ function build(data) {
                 }
             }
         },
+        forEach (func, include) {
+            const set = new Set();
+            for (let item of data.propertySources) {
+                Object.keys(item.source).forEach((key) => {
+                    if (include) {
+                        func(key, item.source[key]);
+                    } else if (!set.has(key)) {
+                        func(key, item.source[key]);
+                        set.add(key);
+                    }
+                });
+            }
+        },
         toString(spaces) {
             return JSON.stringify(data, null, spaces);
         }

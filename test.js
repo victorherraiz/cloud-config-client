@@ -100,6 +100,22 @@ function labelTest() {
     });
 }
 
+function forEachTest() {
+    return Client.load({
+        endpoint: ENDPOINT,
+        profiles: ["test", "timeout"],
+        name: "application"
+    }).then((config) => {
+        let counter = 0;
+        config.forEach((key, value) => counter++);
+        assert.strictEqual(counter, 4);
+        counter = 0;
+        config.forEach((key, value) => counter++, true);
+        assert.strictEqual(counter, 5);
+    });
+
+}
+
 server.listen(PORT, () => {
     Promise.resolve()
     .then(basicTest)
@@ -107,6 +123,7 @@ server.listen(PORT, () => {
     .then(explicitAuth)
     .then(implicitAuth)
     .then(labelTest)
+    .then(forEachTest)
     .then(() => console.log("OK :D"))
     .catch((e) => {
         console.error(e);

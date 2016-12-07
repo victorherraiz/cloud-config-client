@@ -52,7 +52,22 @@ Parameters:
         * `pass` (string)
 * cb (function, optional): node style callback, if missing the method will return a promise.
 
-Returns a configuration object, use `get` method to query values.
+Returns a configuration object, use `get` method to query values and `forEach` to iterate over them.
+
+### `config` object
+
+Methods:
+
+* `get`: return a value from the loaded configuration or null
+* `forEach(cb, include)`: Allow you to iterate over every key/value in the config.
+    * cb (function): iteration calback
+    * include (boolean, default: false): if true, include repeated keys.
+
+
+```js
+config.forEach((key, value) => console.log(key + ":" + value));
+```
+
 
 References
 ----------
