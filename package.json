@@ -1,6 +1,6 @@
 {
   "name": "cloud-config-client",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Spring Cloud Config Client for NodeJS",
   "main": "index.js",
   "scripts": {
