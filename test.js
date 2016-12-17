@@ -113,7 +113,15 @@ function forEachTest() {
         config.forEach((key, value) => counter++, true);
         assert.strictEqual(counter, 5);
     });
+}
 
+function contextPathTest() {
+    return Client.load({
+        endpoint: ENDPOINT + "/justapath",
+        name: "mightyapp"
+    }).then((config) => {
+        assert.strictEqual(lastURL, "/justapath/mightyapp/default");
+    });
 }
 
 server.listen(PORT, () => {
@@ -124,6 +132,7 @@ server.listen(PORT, () => {
     .then(implicitAuth)
     .then(labelTest)
     .then(forEachTest)
+    .then(contextPathTest)
     .then(() => console.log("OK :D"))
     .catch((e) => {
         console.error(e);

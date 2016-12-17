@@ -42,9 +42,9 @@ function getAuth(auth, url) {
     return url.auth;
 }
 
-function getPath(name, profiles, label) {
+function getPath(path, name, profiles, label) {
     const profilesStr = profiles ? profiles.join(",") : "default";
-    return "/" +
+    return (path.endsWith("/") ? path : path + "/") +
         encodeURIComponent(name) + "/" +
         encodeURIComponent(profilesStr) +
         (label ? "/" + encodeURIComponent(label) : "");
@@ -57,7 +57,7 @@ function loadWithCallback(options, cb) {
         protocol: endpoint.protocol,
         hostname: endpoint.hostname,
         port: endpoint.port,
-        path: getPath(name, options.profiles, options.label),
+        path: getPath(endpoint.path, name, options.profiles, options.label),
         auth: getAuth(options.auth, endpoint),
     }, (res) => {
         if (res.statusCode !== 200) { //OK
