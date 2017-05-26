@@ -16,5 +16,8 @@
     "url": "https://github.com/victorherraiz/cloud-config-client.git"
   },
   "author": "Víctor Herraiz Posada <victor.herraiz@gmail.com> (https://github.com/victorherraiz)",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "lodash": ">= 3"
+  }
 }

@@ -1,5 +1,6 @@
 "use strict";
 
+const _ = require("lodash");
 const http = require("http");
 const URL = require("url");
 const ClientRequest = http.ClientRequest;
@@ -7,14 +8,11 @@ const DEFAULT_URL = URL.parse("http://localhost:8888");
 
 function build(data) {
     return {
-        get (prefix, key) {
-            const fk = key ? prefix + "." + key : prefix;
-            for (let item of data.propertySources) {
-                const value = item.source[fk];
-                if (value !== undefined) {
-                    return value;
-                }
-            }
+        properties: _.map(data.propertySources, 'source').reduce(_.defaults, {}),
+        get () {
+            let key = [].slice.call(arguments).filter(String).join('.');
+
+            return _.get(this.properties, key);
         },
         forEach (func, include) {
             const set = new Set();
@@ -44,6 +42,7 @@ function getAuth(auth, url) {
 
 function getPath(path, name, profiles, label) {
     const profilesStr = profiles ? profiles.join(",") : "default";
+
     return (path.endsWith("/") ? path : path + "/") +
         encodeURIComponent(name) + "/" +
         encodeURIComponent(profilesStr) +
@@ -53,6 +52,7 @@ function getPath(path, name, profiles, label) {
 function loadWithCallback(options, cb) {
     const endpoint = options.endpoint ? URL.parse(options.endpoint) : DEFAULT_URL;
     const name = options.name || options.application;
+
     http.request({
         protocol: endpoint.protocol,
         hostname: endpoint.hostname,
@@ -98,4 +98,4 @@ function load(options, cb) {
         loadWithPromise(options);
 }
 
-module.exports = { load }
+module.exports = { load };
