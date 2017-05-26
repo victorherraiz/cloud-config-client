@@ -50,21 +50,30 @@ Parameters:
     * `auth` (object, optional): Basic Authentication for access config server (e.g.: `{ user: "username", pass: "password"}`). `endpoint` accepts also basic auth (e.g. `http://user:pass@localhost:8888`)
         * `user` (string)
         * `pass` (string)
-* cb (function, optional): node style callback, if missing the method will return a promise.
+* cb (function, optional): node style callback. If missing, the method will return a promise.
 
-Returns a configuration object, use `get` method to query values and `forEach` to iterate over them.
+Returns a configuration object, use `properties` to get computed properties, `get` method to query values and `forEach` to iterate over them.
 
 ### `config` object
 
-Methods:
+#### Properties
 
-* `get`: return a value from the loaded configuration or null
-* `forEach(cb, include)`: Allow you to iterate over every key/value in the config.
-    * cb (function): iteration calback
-    * include (boolean, default: false): if true, include repeated keys.
+* `properties`: computed properties as per Spring specification:
+  > Property keys in more specifically named files override those in application.properties or application.yml.
+
+#### Methods
+
+* `get(...parts)`: Retrieve a value at a given path or undefined. Multiple parameters can be used to calculate the key.
+* `forEach(cb, include)`: Iterate over every key/value in the config.
+    * cb - `function(key: string, value: string): void`: iteration callback.
+    * include - `boolean, default: false`: if true, include overridden keys.
 
 
 ```js
+config.get("this.is.a.key")
+config.get("this.is", "a.key")
+config.get("this", "is", "a", "key")
+
 config.forEach((key, value) => console.log(key + ":" + value));
 ```
 
