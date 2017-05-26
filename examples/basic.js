@@ -19,4 +19,4 @@ client.load(options, (error, cfg) => {
     }
     console.log(cfg.get("test.users", "multi.uid"));
     console.log(cfg.toString(2));
-})
+});

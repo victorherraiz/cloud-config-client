@@ -7,8 +7,8 @@ const options1 = {
     application: "demo",
     profiles: ["test", "timeout"],
     auth: {
-    	user: "username",
-    	pass: "password"
+        user: "username",
+        pass: "password"
     }
 };
 

@@ -9,23 +9,15 @@ const DEFAULT_URL = URL.parse("http://localhost:8888");
 function build(data) {
     return {
         properties: _.map(data.propertySources, 'source').reduce(_.defaults, {}),
-        get () {
-            let key = [].slice.call(arguments).filter(String).join('.');
+        get() {
+            const key = [].slice.call(arguments).filter(String).join('.');
 
             return _.get(this.properties, key);
         },
-        forEach (func, include) {
-            const set = new Set();
-            for (let item of data.propertySources) {
-                Object.keys(item.source).forEach((key) => {
-                    if (include) {
-                        func(key, item.source[key]);
-                    } else if (!set.has(key)) {
-                        func(key, item.source[key]);
-                        set.add(key);
-                    }
-                });
-            }
+        forEach(func, include) {
+            const sources = include ? _.map(data.propertySources, 'source') : [this.properties];
+
+            _.forEach(sources, (source) => _.forEach(source, (value, key) => func(key, value)));
         },
         toString(spaces) {
             return JSON.stringify(data, null, spaces);
