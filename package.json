@@ -18,9 +18,6 @@
   },
   "author": "Víctor Herraiz Posada <victor.herraiz@gmail.com> (https://github.com/victorherraiz)",
   "license": "MIT",
-  "dependencies": {
-    "lodash": ">= 3"
-  },
   "devDependencies": {
     "jsdoc": "3.4.3"
   }
