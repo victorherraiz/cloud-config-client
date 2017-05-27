@@ -1,30 +1,53 @@
 "use strict";
 
-const _ = require("lodash");
+/**
+ * @module CloudConfigClient
+ */
+
 const http = require("http");
 const URL = require("url");
-const ClientRequest = http.ClientRequest;
 const DEFAULT_URL = URL.parse("http://localhost:8888");
+const Config = require("./lib/config");
 
-function build(data) {
-    return {
-        properties: _.map(data.propertySources, 'source').reduce(_.defaults, {}),
-        get() {
-            const key = [].slice.call(arguments).filter(String).join('.');
+/**
+ * Client auth configuration
+ *
+ * @typedef {Object} Auth
+ * @property {string} user - user id.
+ * @property {string} pass - user password.
+ */
 
-            return _.get(this.properties, key);
-        },
-        forEach(func, include) {
-            const sources = include ? _.map(data.propertySources, 'source') : [this.properties];
+/**
+ * Client configuration
+ *
+ * @typedef {Object} Options
+ * @property {string} [endpoint=http://localhost:8888] - spring config service url
+ * @property {string} [application] - <b>deprecated</b> use name
+ * @property {string} name - application id
+ * @property {Array<string>} [profiles=["default"]] - application profiles
+ * @property {string} [label] - environment id
+ * @property {module:CloudConfigClient~Auth} [auth] - auth configuration
+ */
 
-            _.forEach(sources, (source) => _.forEach(source, (value, key) => func(key, value)));
-        },
-        toString(spaces) {
-            return JSON.stringify(data, null, spaces);
-        }
-    }
-}
+/**
+ * Handle load response
+ *
+ * @callback loadCallback
+ * @param {?Error} error - whether there was an error retrieving configurations
+ * @param {module:Config~Config} config - configuration object instace
+ */
 
+/**
+ * Retrieve basic auth from options
+ *
+ * Priority:
+ * 1. Defined in options
+ * 2. Coded as basic auth in url
+ *
+ * @param {module:CloudConfigClient~Auth} auth - auth configuration.
+ * @param {URL} url - endpoint.
+ * @returns {string} basic auth.
+ */
 function getAuth(auth, url) {
     if (auth && auth.user && auth.pass) {
         return auth.user + ":" + auth.pass;
@@ -32,8 +55,17 @@ function getAuth(auth, url) {
     return url.auth;
 }
 
+/**
+ * Build spring config endpoint path
+ *
+ * @param {string} path - host base path
+ * @param {string} name - application name
+ * @param {Array<string>} [profiles] - list of profiles, if none specified will use 'default'
+ * @param {string} [label] - environment id
+ * @returns {string} spring config endpoint
+ */
 function getPath(path, name, profiles, label) {
-    const profilesStr = profiles ? profiles.join(",") : "default";
+    const profilesStr = (profiles && profiles.length) ? profiles.join(",") : "default";
 
     return (path.endsWith("/") ? path : path + "/") +
         encodeURIComponent(name) + "/" +
@@ -41,7 +73,13 @@ function getPath(path, name, profiles, label) {
         (label ? "/" + encodeURIComponent(label) : "");
 }
 
-function loadWithCallback(options, cb) {
+/**
+ * Load configuration with callback
+ *
+ * @param {module:CloudConfigClient~Options} options - spring client configuration options
+ * @param {module:CloudConfigClient~loadCallback} [callback] - load callback
+ */
+function loadWithCallback(options, callback) {
     const endpoint = options.endpoint ? URL.parse(options.endpoint) : DEFAULT_URL;
     const name = options.name || options.application;
 
@@ -54,7 +92,7 @@ function loadWithCallback(options, cb) {
     }, (res) => {
         if (res.statusCode !== 200) { //OK
             res.resume(); // it consumes response
-            return cb(new Error("Invalid response: " + res.statusCode));
+            return callback(new Error("Invalid response: " + res.statusCode));
         }
         let response = "";
         res.setEncoding("utf8");
@@ -64,30 +102,43 @@ function loadWithCallback(options, cb) {
         res.on("end", () => {
             try {
                 const body = JSON.parse(response);
-                cb(null, build(body));
+                callback(null, new Config(body));
             } catch (e) {
-                cb(e);
+                callback(e);
             }
         });
-    }).on("error", cb).end();
+    }).on("error", callback).end();
 }
 
+/**
+ * Wrap loadWithCallback with Promise
+ *
+ * @param {module:CloudConfigClient~Options} options - spring client configuration options
+ * @returns {Promise<module:Config~Config, Error>} promise handler
+ */
 function loadWithPromise(options) {
     return new Promise((resolve, reject) => {
-        loadWithCallback(options, (error, cfg) => {
+        loadWithCallback(options, (error, config) => {
             if (error) {
                 reject(error);
             } else {
-                resolve(cfg);
+                resolve(config);
             }
         });
     });
 }
 
-function load(options, cb) {
-    return typeof cb === "function" ?
-        loadWithCallback(options, cb) :
-        loadWithPromise(options);
-}
-
-module.exports = { load };
+module.exports = {
+    /**
+     * Retrieve properties from Spring Cloud config service
+     *
+     * @param {module:CloudConfigClient~Options} options - spring client configuration options
+     * @param {module:CloudConfigClient~loadCallback} [callback] - load callback
+     * @returns {Promise<module:Config~Config, Error>|void} promise handler or void if callback was not defined
+     */
+    load(options, callback) {
+        return typeof callback === "function" ?
+          loadWithCallback(options, callback) :
+          loadWithPromise(options);
+    }
+};

@@ -33,46 +33,56 @@ client.load({
 
 ### `load` function
 
+[Load implementation](./index.js)
+
+#### Parameters
+
+* options - `Object`, mandatory:
+    * endpoint `string`, optional, default=`http://localhost:8888`: Config server URL.
+    * application - `string`, **deprecated, use name**: Load configuration for this application.
+    * name - `string`, mandatory: Load the configuration with this name.
+    * profiles `string[]`, optional, default=`["default"]`: Load profiles.
+    * label - `string`, optional: Load environment.
+    * auth - `Object`, optional: Basic Authentication for access config server (e.g.: `{ user: "username", pass: "password"}`). 
+    _endpoint_ accepts also basic auth (e.g. `http://user:pass@localhost:8888`).
+        * user - `string`, mandatory
+        * pass - `string`, mandatory
+* callback - `function(error: Error, config: Config)`, optional: node style callback. If missing, the method will return a promise.
+
 ```js
-const promise = client.load(options);
+client.load(options)
+.then((config) => { ... })
+.catch((error) => { ... });
+ 
 // or
-client.load(options, function(error, cfg) { ... });
+ 
+client.load(options, (error, config) => { ... });
 ```
 
-Parameters:
+### `Config` object
 
-* options (object, mandatory):
-    * `endpoint` (string, optional, default: `http://localhost:8888`): Config server URL
-    * `application` (deprecated: use name): Load configuration for this app
-    * `name` (string, mandatory): Load the configuration with this name
-    * `profiles` (string array, optional, default: `["default"]`)
-    * `label` (string, optional)
-    * `auth` (object, optional): Basic Authentication for access config server (e.g.: `{ user: "username", pass: "password"}`). `endpoint` accepts also basic auth (e.g. `http://user:pass@localhost:8888`)
-        * `user` (string)
-        * `pass` (string)
-* cb (function, optional): node style callback. If missing, the method will return a promise.
-
-Returns a configuration object, use `properties` to get computed properties, `get` method to query values and `forEach` to iterate over them.
-
-### `config` object
+[Config class implementation](./lib/config.js)
 
 #### Properties
 
+* `raw`: Spring raw response data.
 * `properties`: computed properties as per Spring specification:
   > Property keys in more specifically named files override those in application.properties or application.yml.
 
 #### Methods
 
 * `get(...parts)`: Retrieve a value at a given path or undefined. Multiple parameters can be used to calculate the key.
-* `forEach(cb, include)`: Iterate over every key/value in the config.
-    * cb - `function(key: string, value: string): void`: iteration callback.
-    * include - `boolean, default: false`: if true, include overridden keys.
-
+    * parts - `string`, variable, mandatory:
+* `forEach(callback, includeOverridden)`: Iterate over every key/value in the config.
+    * callback - `function(key: string, value: string)`, mandatory: iteration callback.
+    * includeOverridden - `boolean`, optional, default=`false`: if true, include overridden keys.
+* `toString(spaces): string`: Return a string representation of `raw` property.
+    * spaces - `number`, optional: spaces to use in format.
 
 ```js
-config.get("this.is.a.key")
-config.get("this.is", "a.key")
-config.get("this", "is", "a", "key")
+config.get("this.is.a.key");
+config.get("this.is", "a.key");
+config.get("this", "is", "a", "key");
 
 config.forEach((key, value) => console.log(key + ":" + value));
 ```

@@ -4,7 +4,8 @@
   "description": "Spring Cloud Config Client for NodeJS",
   "main": "index.js",
   "scripts": {
-    "test": "node test.js"
+    "test": "node test.js",
+    "doc": "jsdoc index.js lib -R README.md -d doc"
   },
   "keywords": [
     "Spring Cloud Config",
@@ -19,5 +20,8 @@
   "license": "MIT",
   "dependencies": {
     "lodash": ">= 3"
+  },
+  "devDependencies": {
+    "jsdoc": "3.4.3"
   }
 }
