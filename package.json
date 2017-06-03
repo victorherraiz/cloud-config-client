@@ -4,7 +4,8 @@
   "description": "Spring Cloud Config Client for NodeJS",
   "main": "index.js",
   "scripts": {
-    "test": "node test.js"
+    "test": "node test.js",
+    "doc": "jsdoc index.js lib -R README.md -d doc"
   },
   "keywords": [
     "Spring Cloud Config",
@@ -16,5 +17,8 @@
     "url": "https://github.com/victorherraiz/cloud-config-client.git"
   },
   "author": "Víctor Herraiz Posada <victor.herraiz@gmail.com> (https://github.com/victorherraiz)",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "jsdoc": "3.4.3"
+  }
 }
