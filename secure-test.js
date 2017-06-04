@@ -50,7 +50,7 @@ function basicTest() {
         endpoint: ENDPOINT,
         profiles: ["test", "timeout"],
         name: "application",
-        insecure : true,
+        insecure : true
     }).then((config) => {
         assert.strictEqual(lastURL, "/application/test%2Ctimeout");
         assert.strictEqual(config.get("key01"), "value01");
@@ -67,7 +67,7 @@ function deprecatedTest() {
         endpoint: ENDPOINT,
         profiles: ["test", "timeout"],
         application: "application",
-        insecure : true,
+        insecure : true
     }).then((config) => {
         assert.strictEqual(lastURL, "/application/test%2Ctimeout");
     });
@@ -130,7 +130,7 @@ function contextPathTest() {
     return Client.load({
         endpoint: ENDPOINT + "/justapath",
         name: "mightyapp",
-        insecure : true,
+        insecure : true
     }).then((config) => {
         assert.strictEqual(lastURL, "/justapath/mightyapp/default");
     });
