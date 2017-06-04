@@ -1,10 +1,10 @@
 {
   "name": "cloud-config-client",
-  "version": "0.3.1",
+  "version": "0.4.1",
   "description": "Spring Cloud Config Client for NodeJS",
   "main": "index.js",
   "scripts": {
-    "test": "node test.js",
+    "test": "node test.js secure-test.js",
     "doc": "jsdoc index.js lib -R README.md -d doc"
   },
   "keywords": [
