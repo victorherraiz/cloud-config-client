@@ -5,6 +5,7 @@
  */
 
 const http = require("http");
+const https = require("https");
 const URL = require("url");
 const DEFAULT_URL = URL.parse("http://localhost:8888");
 const Config = require("./lib/config");
@@ -82,8 +83,9 @@ function getPath(path, name, profiles, label) {
 function loadWithCallback(options, callback) {
     const endpoint = options.endpoint ? URL.parse(options.endpoint) : DEFAULT_URL;
     const name = options.name || options.application;
+    const server = options.insecure ? https : http;
 
-    http.request({
+    server.request({
         protocol: endpoint.protocol,
         hostname: endpoint.hostname,
         port: endpoint.port,

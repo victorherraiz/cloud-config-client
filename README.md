@@ -42,6 +42,7 @@ client.load({
     * application - `string`, **deprecated, use name**: Load configuration for this application.
     * name - `string`, mandatory: Load the configuration with this name.
     * profiles `string[]`, optional, default=`["default"]`: Load profiles.
+    * insecure `boolean`, optional, default=`false`: Load config client in secure mode.
     * label - `string`, optional: Load environment.
     * auth - `Object`, optional: Basic Authentication for access config server (e.g.: `{ user: "username", pass: "password"}`). 
     _endpoint_ accepts also basic auth (e.g. `http://user:pass@localhost:8888`).
