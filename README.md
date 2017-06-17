@@ -39,6 +39,7 @@ client.load({
 
 * options - `Object`, mandatory:
     * endpoint `string`, optional, default=`http://localhost:8888`: Config server URL.
+    * rejectUnauthorized - `boolean`, optional, default = `true`: if `false` accepts self-signed certificates
     * application - `string`, **deprecated, use name**: Load configuration for this application.
     * name - `string`, mandatory: Load the configuration with this name.
     * profiles `string[]`, optional, default=`["default"]`: Load profiles.

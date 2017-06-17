@@ -1,10 +1,14 @@
 "use strict";
 
-const Client = require(".");
+const Client = require("..");
 const http = require("http");
+const https = require("https");
+const fs = require("fs");
 const assert = require("assert");
 const PORT = 15023;
+const HTTPS_PORT = PORT + 1;
 const ENDPOINT = "http://localhost:" + PORT;
+const HTTPS_ENDPOINT = "https://localhost:" + HTTPS_PORT;
 const AUTH = "Basic dXNlcm5hbWU6cGFzc3dvcmQ=";
 
 const DATA = {
@@ -36,24 +40,45 @@ const server = http.createServer((req, res) => {
     res.end(JSON.stringify(DATA));
 });
 
+const httpsOptions = {
+  key: fs.readFileSync('tests/key.pem'),
+  cert: fs.readFileSync('tests/cert.pem')
+}
+
+const httpsServer = https.createServer(httpsOptions, (req, res) => {
+    lastURL = req.url;
+    lastHeaders = req.headers;
+    res.end(JSON.stringify(DATA));
+});
+
 server.on("clientError", (err, socket) => {
   socket.end("HTTP/1.1 400 Bad Request\r\n\r\n");
 });
+
+function basicAssertions(config) {
+    assert.strictEqual(lastURL, "/application/test%2Ctimeout");
+    assert.strictEqual(config.get("key01"), "value01");
+    assert.strictEqual(config.get("key02"), 2);
+    assert.strictEqual(config.get("key03"), null);
+    assert.strictEqual(config.get("missing"), undefined);
+    assert.strictEqual(config.get("key04.key01"), 42);
+    assert.strictEqual(config.get("key04", "key01"), 42);
+}
 
 function basicTest() {
     return Client.load({
         endpoint: ENDPOINT,
         profiles: ["test", "timeout"],
         name: "application"
-    }).then((config) => {
-        assert.strictEqual(lastURL, "/application/test%2Ctimeout");
-        assert.strictEqual(config.get("key01"), "value01");
-        assert.strictEqual(config.get("key02"), 2);
-        assert.strictEqual(config.get("key03"), null);
-        assert.strictEqual(config.get("missing"), undefined);
-        assert.strictEqual(config.get("key04.key01"), 42);
-        assert.strictEqual(config.get("key04", "key01"), 42);
-    });
+    }).then(basicAssertions);
+}
+
+function httpsSimpleTest() {
+    return Client.load({
+        endpoint: HTTPS_ENDPOINT,
+        profiles: ["test", "timeout"],
+        name: "application"
+    }).then(basicAssertions);
 }
 
 function deprecatedTest() {
@@ -115,6 +140,7 @@ function forEachTest() {
     });
 }
 
+
 function contextPathTest() {
     return Client.load({
         endpoint: ENDPOINT + "/justapath",
@@ -122,6 +148,12 @@ function contextPathTest() {
     }).then((config) => {
         assert.strictEqual(lastURL, "/justapath/mightyapp/default");
     });
+}
+
+
+function proccessError(e) {
+    console.error(e);
+    process.exitCode = 1;
 }
 
 server.listen(PORT, () => {
@@ -133,11 +165,15 @@ server.listen(PORT, () => {
     .then(labelTest)
     .then(forEachTest)
     .then(contextPathTest)
-    .then(() => console.log("OK :D"))
-    .catch((e) => {
-        console.error(e);
-        process.exitCode = 1;
-    }).then(() => {
-        server.close();
-    });
+    .then(() => console.log("HTTP OK :D"))
+    .catch(proccessError)
+    .then(() => server.close());
+});
+
+httpsServer.listen(HTTPS_PORT, () => {
+    Promise.resolve()
+    .then(httpsSimpleTest)
+    .then(() => console.log("HTTPS OK :D"))
+    .catch(proccessError)
+    .then(() => httpsServer.close());
 });
