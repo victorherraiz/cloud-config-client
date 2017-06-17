@@ -161,6 +161,31 @@ function contextPathTest() {
     });
 }
 
+function propertiesTest() {
+    return Client.load({
+        endpoint: ENDPOINT,
+        profiles: ["test", "timeout"],
+        name: "application"
+    }).then(config => {
+        const properties = config.properties;
+        assert.deepEqual(properties,
+            { key01: 'value01', key02: 2, key03: null, 'key04.key01': 42 });
+    });
+}
+
+
+function rawTest() {
+    return Client.load({
+        endpoint: ENDPOINT,
+        profiles: ["test", "timeout"],
+        name: "application"
+    }).then(config => {
+        const raw = config.raw;
+        assert.deepEqual(raw, DATA);
+    });
+}
+
+
 
 function proccessError(e) {
     console.error(e);
@@ -176,6 +201,8 @@ server.listen(PORT, () => {
     .then(labelTest)
     .then(forEachTest)
     .then(contextPathTest)
+    .then(propertiesTest)
+    .then(rawTest)
     .then(() => console.log("HTTP OK :D"))
     .catch(proccessError)
     .then(() => server.close());
