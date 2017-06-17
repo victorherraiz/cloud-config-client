@@ -76,9 +76,20 @@ function basicTest() {
 function httpsSimpleTest() {
     return Client.load({
         endpoint: HTTPS_ENDPOINT,
+        rejectUnauthorized: false,
         profiles: ["test", "timeout"],
         name: "application"
     }).then(basicAssertions);
+}
+
+function httpsRejectionTest() {
+    return Client.load({
+        endpoint: HTTPS_ENDPOINT,
+        profiles: ["test", "timeout"],
+        name: "application"
+    }).then(() => {
+        throw new Error("No exception");
+    }, () => {}); //just ignore
 }
 
 function deprecatedTest() {
@@ -173,6 +184,7 @@ server.listen(PORT, () => {
 httpsServer.listen(HTTPS_PORT, () => {
     Promise.resolve()
     .then(httpsSimpleTest)
+    .then(httpsRejectionTest)
     .then(() => console.log("HTTPS OK :D"))
     .catch(proccessError)
     .then(() => httpsServer.close());

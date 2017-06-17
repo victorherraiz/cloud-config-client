@@ -23,6 +23,7 @@ const Config = require("./lib/config");
  *
  * @typedef {Object} Options
  * @property {string} [endpoint=http://localhost:8888] - spring config service url
+ * @property {boolean} [rejectUnauthorized=true] - if false accepts self-signed certificates
  * @property {string} [application] - <b>deprecated</b> use name
  * @property {string} name - application id
  * @property {Array<string>} [profiles=["default"]] - application profiles
@@ -91,7 +92,7 @@ function loadWithCallback(options, callback) {
         port: endpoint.port,
         path: getPath(endpoint.path, name, options.profiles, options.label),
         auth: getAuth(options.auth, endpoint),
-        rejectUnauthorized: options.rejectUnauthorized === true,
+        rejectUnauthorized: options.rejectUnauthorized !== false,
         agent: false
     }, (res) => {
         if (res.statusCode !== 200) { //OK
@@ -139,6 +140,8 @@ module.exports = {
      * @param {module:CloudConfigClient~Options} options - spring client configuration options
      * @param {module:CloudConfigClient~loadCallback} [callback] - load callback
      * @returns {Promise<module:Config~Config, Error>|void} promise handler or void if callback was not defined
+     *
+     * @since 1.0.0
      */
     load(options, callback) {
         return typeof callback === "function" ?
