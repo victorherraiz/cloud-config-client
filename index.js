@@ -26,7 +26,7 @@ const Config = require("./lib/config");
  * @property {boolean} [rejectUnauthorized=true] - if false accepts self-signed certificates
  * @property {string} [application] - <b>deprecated</b> use name
  * @property {string} name - application id
- * @property {Array<string>} [profiles=["default"]] - application profiles
+ * @property {(string|string[])} [profiles="default"] - application profiles (e.g. ["test", "timeout"] or "test,timeout")
  * @property {string} [label] - environment id
  * @property {module:CloudConfigClient~Auth} [auth] - auth configuration
  */
@@ -57,17 +57,34 @@ function getAuth(auth, url) {
     return url.auth;
 }
 
+
+/**
+ * Build profile string from options value
+ *
+ * @param {(string|string[])} [profiles] - list of profiles, if none specified will use 'default'
+ */
+function buildProfilesString(profiles) {
+    if (!profiles) {
+        return "default";
+    }
+    if (Array.isArray(profiles)) {
+        return profiles.join(",");
+    }
+    return profiles;
+}
+
+
 /**
  * Build spring config endpoint path
  *
  * @param {string} path - host base path
  * @param {string} name - application name
- * @param {Array<string>} [profiles] - list of profiles, if none specified will use 'default'
+ * @param {(string|string[])} [profiles] - list of profiles, if none specified will use 'default'
  * @param {string} [label] - environment id
  * @returns {string} spring config endpoint
  */
 function getPath(path, name, profiles, label) {
-    const profilesStr = (profiles && profiles.length) ? profiles.join(",") : "default";
+    const profilesStr = buildProfilesString(profiles);
 
     return (path.endsWith("/") ? path : path + "/") +
         encodeURIComponent(name) + "/" +

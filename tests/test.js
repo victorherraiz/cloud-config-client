@@ -73,6 +73,14 @@ function basicTest() {
     }).then(basicAssertions);
 }
 
+function basicStringProfileTest() {
+    return Client.load({
+        endpoint: ENDPOINT,
+        profiles: "test,timeout",
+        name: "application"
+    }).then(basicAssertions);
+}
+
 function httpsSimpleTest() {
     return Client.load({
         endpoint: HTTPS_ENDPOINT,
@@ -195,6 +203,7 @@ function proccessError(e) {
 server.listen(PORT, () => {
     Promise.resolve()
     .then(basicTest)
+    .then(basicStringProfileTest)
     .then(deprecatedTest)
     .then(explicitAuth)
     .then(implicitAuth)

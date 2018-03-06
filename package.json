@@ -1,9 +1,10 @@
 {
   "name": "cloud-config-client",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Spring Cloud Config Client for NodeJS",
   "main": "index.js",
   "scripts": {
+    "lint:fix": "standard --fix",
     "test": "node tests/test.js",
     "doc": "jsdoc index.js lib -R README.md -d doc"
   },
@@ -19,6 +20,7 @@
   "author": "Víctor Herraiz Posada <victor.herraiz@gmail.com> (https://github.com/victorherraiz)",
   "license": "MIT",
   "devDependencies": {
-    "jsdoc": "3.4.3"
+    "jsdoc": "^3.5.5",
+    "standard": "^11.0.0"
   }
 }
