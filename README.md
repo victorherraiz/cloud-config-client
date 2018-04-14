@@ -48,7 +48,7 @@ client.load({
     _endpoint_ accepts also basic auth (e.g. `http://user:pass@localhost:8888`).
     * user - `string`, mandatory
     * pass - `string`, mandatory
-  * agent - `http.Agent|https.Agent`, optional: Agent for the request.
+  * agent - `http.Agent|https.Agent`, optional: Agent for the request. (e.g. use a proxy) (Since version 1.2.0)
 * callback - `function(error: Error, config: Config)`, optional: node style callback. If missing, the method will return a promise.
 
 ```js
