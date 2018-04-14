@@ -108,7 +108,7 @@ function loadWithCallback (options, callback) {
     path: getPath(endpoint.path, name, options.profiles, options.label),
     auth: getAuth(options.auth, endpoint),
     rejectUnauthorized: options.rejectUnauthorized !== false,
-    agent: false
+    agent: options.agent
   }, (res) => {
     if (res.statusCode !== 200) { // OK
       res.resume() // it consumes response

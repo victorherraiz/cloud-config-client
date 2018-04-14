@@ -91,6 +91,27 @@ function httpsSimpleTest () {
   }).then(basicAssertions)
 }
 
+function httpsWithAgent () {
+  const agent = new https.Agent()
+  const old = agent.createConnection.bind(agent)
+  let used = false
+  agent.createConnection = function (options, callback) {
+    used = true
+    return old(options, callback)
+  }
+  return Client.load({
+    endpoint: HTTPS_ENDPOINT,
+    rejectUnauthorized: false,
+    profiles: ['test', 'timeout'],
+    name: 'application',
+    agent
+  }).then(basicAssertions)
+    .then(() => {
+      assert(used, 'Agent must be used in the call')
+      agent.destroy()
+    })
+}
+
 function httpsRejectionTest () {
   return Client.load({
     endpoint: HTTPS_ENDPOINT,
@@ -218,6 +239,7 @@ httpsServer.listen(HTTPS_PORT, () => {
   Promise.resolve()
     .then(httpsSimpleTest)
     .then(httpsRejectionTest)
+    .then(httpsWithAgent)
     .then(() => console.log('HTTPS OK :D'))
     .catch(proccessError)
     .then(() => httpsServer.close())
