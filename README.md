@@ -97,6 +97,29 @@ config.get("this", "is", "a", "key");
 config.forEach((key, value) => console.log(key + ":" + value));
 ```
 
+Behind a proxy
+-------------
+
+Example (adapted from https-proxy-agent site):
+
+```js
+const HttpsProxyAgent = require('https-proxy-agent')
+const client = require('cloud-config-client')
+
+const proxy = process.env.http_proxy || 'http://168.63.76.32:3128'
+console.log('using proxy server %j', proxy)
+const agent = new HttpsProxyAgent(proxy)
+
+const options = {
+  application: 'demo',
+  profiles: ['test', 'timeout'],
+  agent
+}
+client.load(options).then((cfg) => {
+  console.log(cfg.get('test.users', 'multi.uid'))
+  console.log(cfg.toString(2))
+}).catch((error) => console.error(error))
+```
 
 References
 ----------
