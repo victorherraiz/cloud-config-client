@@ -88,7 +88,7 @@ async function foo () {
     * includeOverridden - `boolean`, optional, default=`false`: if true, include overridden keys.
 * `toString(spaces): string`: Returns a string representation of `raw` property.
     * spaces - `number`, optional: spaces to use in format.
-* `toObject()`: Returns the whole configuration as an object.
+* `toObject(): object`: Returns the whole configuration as an object. (Since version 1.3.0)
 
 ```js
 config.get("this.is.a.key");
