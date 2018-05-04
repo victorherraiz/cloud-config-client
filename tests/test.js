@@ -13,7 +13,7 @@ const AUTH = 'Basic dXNlcm5hbWU6cGFzc3dvcmQ='
 
 const DATA = {
   name: 'application',
-  profiles: [ 'default' ],
+  profiles: ['default'],
   label: 'master',
   propertySources: [{
     name: 'file:///myapp.yml',
@@ -31,13 +31,52 @@ const DATA = {
   }]
 }
 
+const COMPLEX_DATA_1 = {
+  name: 'application',
+  profiles: ['default'],
+  label: 'master',
+  propertySources: [{
+    name: 'file:///myapp.yml',
+    source: {
+      'key01': 'value01',
+      'key02': null,
+      'key03.key01[0]': 1,
+      'key03.key01[1].data': 2,
+      'key03.key02': 3,
+      'key04.key01': 42
+    }
+  }]
+}
+const COMPLEX_DATA_2 = {
+  'name': 'complex',
+  'profiles': [
+    'default'
+  ],
+  'label': null,
+  'version': 'f692c32698e97d995321f9efb0048271ef8e4b1c',
+  'state': null,
+  'propertySources': [
+    {
+      'name': 'file:/Users/viktor/Downloads/configuration/application.yml',
+      'source': {
+        'data.key01[0][0]': 1,
+        'data.key01[0][1]': 3,
+        'data.key01[1][0]': 4,
+        'data.key01[1][1]': 5
+      }
+    }
+  ]
+}
+
 let lastURL = null
 let lastHeaders = null
 
 const server = http.createServer((req, res) => {
   lastURL = req.url
   lastHeaders = req.headers
-  res.end(JSON.stringify(DATA))
+  if (lastURL.startsWith('/complex_data1')) res.end(JSON.stringify(COMPLEX_DATA_1))
+  else if (lastURL.startsWith('/complex_data2')) res.end(JSON.stringify(COMPLEX_DATA_2))
+  else res.end(JSON.stringify(DATA))
 })
 
 const httpsOptions = {
@@ -119,7 +158,7 @@ function httpsRejectionTest () {
     name: 'application'
   }).then(() => {
     throw new Error('No exception')
-  }, () => {}) // just ignore
+  }, () => { }) // just ignore
 }
 
 function deprecatedTest () {
@@ -213,13 +252,42 @@ function rawTest () {
   })
 }
 
-function proccessError (e) {
+function toObjectTest1 () {
+  return Client.load({
+    endpoint: ENDPOINT,
+    profiles: ['test'],
+    name: 'complex_data1'
+  }).then(config => {
+    const obj = config.toObject()
+    assert.deepStrictEqual(obj, {
+      key01: 'value01',
+      key02: null,
+      key03: { key01: [1, { data: 2 }], key02: 3 },
+      key04: { key01: 42 }
+    })
+  })
+}
+
+function toObjectTest2 () {
+  return Client.load({
+    endpoint: ENDPOINT,
+    profiles: ['test'],
+    name: 'complex_data2'
+  }).then(config => {
+    const obj = config.toObject()
+    assert.deepStrictEqual(obj, {
+      data: { key01: [[1, 3], [4, 5]] }
+    })
+  })
+}
+
+function processError (e) {
   console.error(e)
   process.exitCode = 1
 }
 
-server.listen(PORT, () => {
-  Promise.resolve()
+function httpTests () {
+  return new Promise((resolve) => server.listen(PORT, resolve))
     .then(basicTest)
     .then(basicStringProfileTest)
     .then(deprecatedTest)
@@ -230,17 +298,21 @@ server.listen(PORT, () => {
     .then(contextPathTest)
     .then(propertiesTest)
     .then(rawTest)
+    .then(toObjectTest1)
+    .then(toObjectTest2)
     .then(() => console.log('HTTP OK :D'))
-    .catch(proccessError)
+    .catch(processError)
     .then(() => server.close())
-})
+}
 
-httpsServer.listen(HTTPS_PORT, () => {
-  Promise.resolve()
+function httpsTests () {
+  return new Promise((resolve) => httpsServer.listen(HTTPS_PORT, resolve))
     .then(httpsSimpleTest)
     .then(httpsRejectionTest)
     .then(httpsWithAgent)
     .then(() => console.log('HTTPS OK :D'))
-    .catch(proccessError)
+    .catch(processError)
     .then(() => httpsServer.close())
-})
+}
+
+httpTests().then(httpsTests).catch(processError)

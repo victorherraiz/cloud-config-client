@@ -83,11 +83,12 @@ async function foo () {
 
 * `get(...parts)`: Retrieve a value at a given path or undefined. Multiple parameters can be used to calculate the key.
     * parts - `string`, variable, mandatory:
-* `forEach(callback, includeOverridden)`: Iterate over every key/value in the config.
+* `forEach(callback, includeOverridden)`: Iterates over every key/value in the config.
     * callback - `function(key: string, value: string)`, mandatory: iteration callback.
     * includeOverridden - `boolean`, optional, default=`false`: if true, include overridden keys.
-* `toString(spaces): string`: Return a string representation of `raw` property.
+* `toString(spaces): string`: Returns a string representation of `raw` property.
     * spaces - `number`, optional: spaces to use in format.
+* `toObject()`: Returns the whole configuration as an object.
 
 ```js
 config.get("this.is.a.key");
