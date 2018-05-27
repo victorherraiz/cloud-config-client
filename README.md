@@ -1,5 +1,4 @@
-Spring Cloud Config Client for NodeJS
-=====================================
+# Spring Cloud Config Client for NodeJS
 
 [![Build Status](https://travis-ci.org/victorherraiz/cloud-config-client.svg?branch=master)](https://travis-ci.org/victorherraiz/cloud-config-client)
 
@@ -7,15 +6,11 @@ Requires: NodeJS 4+
 
 Feature requests are welcome.
 
-
-Install
--------
+## Install
 
     npm install cloud-config-client --save
 
-
-Usage
------
+## Usage
 
 ```js
 const client = require("cloud-config-client");
@@ -82,12 +77,12 @@ async function foo () {
 #### Methods
 
 * `get(...parts)`: Retrieve a value at a given path or undefined. Multiple parameters can be used to calculate the key.
-    * parts - `string`, variable, mandatory:
+  * parts - `string`, variable, mandatory:
 * `forEach(callback, includeOverridden)`: Iterates over every key/value in the config.
-    * callback - `function(key: string, value: string)`, mandatory: iteration callback.
-    * includeOverridden - `boolean`, optional, default=`false`: if true, include overridden keys.
+  * callback - `function(key: string, value: string)`, mandatory: iteration callback.
+  * includeOverridden - `boolean`, optional, default=`false`: if true, include overridden keys.
 * `toString(spaces): string`: Returns a string representation of `raw` property.
-    * spaces - `number`, optional: spaces to use in format.
+  * spaces - `number`, optional: spaces to use in format.
 * `toObject(): object`: Returns the whole configuration as an object. (Since version 1.3.0)
 
 ```js
@@ -98,8 +93,7 @@ config.get("this", "is", "a", "key");
 config.forEach((key, value) => console.log(key + ":" + value));
 ```
 
-Behind a proxy
--------------
+## Behind a proxy
 
 Example (adapted from https-proxy-agent site):
 
@@ -122,8 +116,6 @@ client.load(options).then((cfg) => {
 }).catch((error) => console.error(error))
 ```
 
-References
-----------
+## References
 
 * [Spring Cloud Config](http://cloud.spring.io/spring-cloud-config/)
-

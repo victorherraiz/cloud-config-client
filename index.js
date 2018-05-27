@@ -29,6 +29,7 @@ const Config = require('./lib/config')
  * @property {(string|string[])} [profiles="default"] - application profiles (e.g. ["test", "timeout"] or "test,timeout")
  * @property {string} [label] - environment id
  * @property {module:CloudConfigClient~Auth} [auth] - auth configuration
+ * @property {http.Agent|https.Agent} [agent] - Agent for the request. (e.g. use a proxy) (Since version 1.2.0)
  */
 
 /**
@@ -36,7 +37,7 @@ const Config = require('./lib/config')
  *
  * @callback loadCallback
  * @param {?Error} error - whether there was an error retrieving configurations
- * @param {module:Config~Config} config - configuration object instace
+ * @param {module:Config~Config} config - configuration object instance
  */
 
 /**
