@@ -1,5 +1,6 @@
 'use strict'
 
+const { describe, it, before, after } = require('mocha')
 const Client = require('..')
 const http = require('http')
 const https = require('https')
@@ -70,30 +71,6 @@ const COMPLEX_DATA_2 = {
 
 let lastURL = null
 let lastHeaders = null
-
-const server = http.createServer((req, res) => {
-  lastURL = req.url
-  lastHeaders = req.headers
-  if (lastURL.startsWith('/complex_data1')) res.end(JSON.stringify(COMPLEX_DATA_1))
-  else if (lastURL.startsWith('/complex_data2')) res.end(JSON.stringify(COMPLEX_DATA_2))
-  else res.end(JSON.stringify(DATA))
-})
-
-const httpsOptions = {
-  key: fs.readFileSync('tests/key.pem'),
-  cert: fs.readFileSync('tests/cert.pem')
-}
-
-const httpsServer = https.createServer(httpsOptions, (req, res) => {
-  lastURL = req.url
-  lastHeaders = req.headers
-  res.end(JSON.stringify(DATA))
-})
-
-server.on('clientError', (err, socket) => {
-  console.error(err)
-  socket.end('HTTP/1.1 400 Bad Request\r\n\r\n')
-})
 
 function basicAssertions (config) {
   assert.strictEqual(lastURL, '/application/test%2Ctimeout')
@@ -281,38 +258,66 @@ function toObjectTest2 () {
   })
 }
 
-function processError (e) {
-  console.error(e)
-  process.exitCode = 1
-}
+describe('Spring Cloud Configuration Node Client', function () {
 
-function httpTests () {
-  return new Promise((resolve) => server.listen(PORT, resolve))
-    .then(basicTest)
-    .then(basicStringProfileTest)
-    .then(deprecatedTest)
-    .then(explicitAuth)
-    .then(implicitAuth)
-    .then(labelTest)
-    .then(forEachTest)
-    .then(contextPathTest)
-    .then(propertiesTest)
-    .then(rawTest)
-    .then(toObjectTest1)
-    .then(toObjectTest2)
-    .then(() => console.log('HTTP OK :D'))
-    .catch(processError)
-    .then(() => server.close())
-}
+  const server = http.createServer((req, res) => {
+    lastURL = req.url
+    lastHeaders = req.headers
+    if (lastURL.startsWith('/complex_data1')) res.end(JSON.stringify(COMPLEX_DATA_1))
+    else if (lastURL.startsWith('/complex_data2')) res.end(JSON.stringify(COMPLEX_DATA_2))
+    else res.end(JSON.stringify(DATA))
+  })
 
-function httpsTests () {
-  return new Promise((resolve) => httpsServer.listen(HTTPS_PORT, resolve))
-    .then(httpsSimpleTest)
-    .then(httpsRejectionTest)
-    .then(httpsWithAgent)
-    .then(() => console.log('HTTPS OK :D'))
-    .catch(processError)
-    .then(() => httpsServer.close())
-}
+  const httpsOptions = {
+    key: fs.readFileSync('tests/key.pem'),
+    cert: fs.readFileSync('tests/cert.pem')
+  }
 
-httpTests().then(httpsTests).catch(processError)
+  const httpsServer = https.createServer(httpsOptions, (req, res) => {
+    lastURL = req.url
+    lastHeaders = req.headers
+    res.end(JSON.stringify(DATA))
+  })
+
+  server.on('clientError', (err, socket) => {
+    console.error(err)
+    socket.end('HTTP/1.1 400 Bad Request\r\n\r\n')
+  })
+
+  before('start http server', function (done) {
+    server.listen(PORT, done)
+  })
+
+  after('stop http server', function (done) {
+    server.close(done)
+  })
+
+  before('start https server', function (done) {
+    httpsServer.listen(HTTPS_PORT, done)
+  })
+
+  after('stop https server', function (done) {
+    httpsServer.close(done)
+  })
+
+  it('Test migration - http', function () {
+    return basicTest()
+      .then(basicStringProfileTest)
+      .then(deprecatedTest)
+      .then(explicitAuth)
+      .then(implicitAuth)
+      .then(labelTest)
+      .then(forEachTest)
+      .then(contextPathTest)
+      .then(propertiesTest)
+      .then(rawTest)
+      .then(toObjectTest1)
+      .then(toObjectTest2)
+  })
+
+  it('Test migration - https', function () {
+    return httpsSimpleTest()
+      .then(httpsRejectionTest)
+      .then(httpsWithAgent)
+  })
+})

@@ -6,8 +6,15 @@
   "scripts": {
     "lint:fix": "standard --fix",
     "lint": "standard",
-    "test": "npm run lint && node tests/test.js",
+    "test:unit": "mocha tests/test.js",
+    "test": "npm run lint && nyc npm run test:unit",
     "doc": "jsdoc index.js lib --pedantic --verbose -R README.md -d doc"
+  },
+  "nyc": {
+    "reporter": [
+      "lcov",
+      "text"
+    ]
   },
   "keywords": [
     "Spring Cloud Config",
@@ -22,6 +29,8 @@
   "license": "MIT",
   "devDependencies": {
     "jsdoc": "^3.5.5",
+    "mocha": "^5.2.0",
+    "nyc": "^11.8.0",
     "standard": "^11.0.0"
   }
 }
