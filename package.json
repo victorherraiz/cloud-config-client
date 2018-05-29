@@ -7,7 +7,7 @@
     "lint:fix": "standard --fix",
     "lint": "standard",
     "test": "npm run lint && node tests/test.js",
-    "doc": "jsdoc index.js lib -R README.md -d doc"
+    "doc": "jsdoc index.js lib --pedantic --verbose -R README.md -d doc"
   },
   "keywords": [
     "Spring Cloud Config",
