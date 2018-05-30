@@ -44,6 +44,7 @@ client.load({
     * user - `string`, mandatory
     * pass - `string`, mandatory
   * agent - `http.Agent|https.Agent`, optional: Agent for the request. (e.g. use a proxy) (Since version 1.2.0)
+  * context - `object`, optional: Context for substitution (see context section below) (Since version 1.4.0)
 * callback - `function(error: Error, config: Config)`, optional: node style callback. If missing, the method will return a promise.
 
 ```js
@@ -62,6 +63,35 @@ async function foo () {
     //...
 }
 
+```
+
+### Context references (Since version 1.4.0)
+
+Strings could contain context references, if a contexts is provided those references will be replaced by the actual values in the `Config` object reference.
+
+YAML example:
+
+```yaml
+key01: Hello ${NAME:World}!!!
+```
+
+This is not related to spEl and those references are not an expression language. 
+
+Reference structure: `${CONTEXT_KEY:DEFAULT_VALUE?}`:
+
+* `CONTEXT_KEY`: Context key, if the value for the key is missing it will be use the default value or return the original string
+* `DEFAULT_VALUE`: Optional default value
+
+Environment variables as context:
+
+```js
+Client.load({
+  endpoint: 'http://server:8888',
+  name: 'application',
+  context: process.env })
+.then(config => {
+  // config loaded
+}).catch(console.error)
 ```
 
 ### `Config` object

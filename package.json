@@ -30,6 +30,7 @@
   "devDependencies": {
     "jsdoc": "^3.5.5",
     "mocha": "^5.2.0",
+    "nock": "^9.2.6",
     "nyc": "^11.8.0",
     "standard": "^11.0.0"
   }

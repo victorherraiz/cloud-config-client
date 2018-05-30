@@ -4,6 +4,7 @@ const { describe, it, before, after } = require('mocha')
 const Client = require('..')
 const http = require('http')
 const https = require('https')
+const nock = require('nock')
 const fs = require('fs')
 const assert = require('assert')
 const PORT = 15023
@@ -13,18 +14,13 @@ const HTTPS_ENDPOINT = 'https://localhost:' + HTTPS_PORT
 const AUTH = 'Basic dXNlcm5hbWU6cGFzc3dvcmQ='
 
 const DATA = {
-  name: 'application',
-  profiles: ['default'],
-  label: 'master',
   propertySources: [{
-    name: 'file:///myapp.yml',
     source: {
       'key01': 'value01',
       'key03': null,
       'key04.key01': 42
     }
   }, {
-    name: 'file:///application.yml',
     source: {
       'key01': 'banana',
       'key02': 2
@@ -33,11 +29,7 @@ const DATA = {
 }
 
 const COMPLEX_DATA_1 = {
-  name: 'application',
-  profiles: ['default'],
-  label: 'master',
   propertySources: [{
-    name: 'file:///myapp.yml',
     source: {
       'key01': 'value01',
       'key02': null,
@@ -49,16 +41,8 @@ const COMPLEX_DATA_1 = {
   }]
 }
 const COMPLEX_DATA_2 = {
-  'name': 'complex',
-  'profiles': [
-    'default'
-  ],
-  'label': null,
-  'version': 'f692c32698e97d995321f9efb0048271ef8e4b1c',
-  'state': null,
   'propertySources': [
     {
-      'name': 'file:/Users/viktor/Downloads/configuration/application.yml',
       'source': {
         'data.key01[0][0]': 1,
         'data.key01[0][1]': 3,
@@ -96,46 +80,6 @@ function basicStringProfileTest () {
     profiles: 'test,timeout',
     name: 'application'
   }).then(basicAssertions)
-}
-
-function httpsSimpleTest () {
-  return Client.load({
-    endpoint: HTTPS_ENDPOINT,
-    rejectUnauthorized: false,
-    profiles: ['test', 'timeout'],
-    name: 'application'
-  }).then(basicAssertions)
-}
-
-function httpsWithAgent () {
-  const agent = new https.Agent()
-  const old = agent.createConnection.bind(agent)
-  let used = false
-  agent.createConnection = function (options, callback) {
-    used = true
-    return old(options, callback)
-  }
-  return Client.load({
-    endpoint: HTTPS_ENDPOINT,
-    rejectUnauthorized: false,
-    profiles: ['test', 'timeout'],
-    name: 'application',
-    agent
-  }).then(basicAssertions)
-    .then(() => {
-      assert(used, 'Agent must be used in the call')
-      agent.destroy()
-    })
-}
-
-function httpsRejectionTest () {
-  return Client.load({
-    endpoint: HTTPS_ENDPOINT,
-    profiles: ['test', 'timeout'],
-    name: 'application'
-  }).then(() => {
-    throw new Error('No exception')
-  }, () => { }) // just ignore
 }
 
 function deprecatedTest () {
@@ -259,7 +203,6 @@ function toObjectTest2 () {
 }
 
 describe('Spring Cloud Configuration Node Client', function () {
-
   const server = http.createServer((req, res) => {
     lastURL = req.url
     lastHeaders = req.headers
@@ -292,14 +235,6 @@ describe('Spring Cloud Configuration Node Client', function () {
     server.close(done)
   })
 
-  before('start https server', function (done) {
-    httpsServer.listen(HTTPS_PORT, done)
-  })
-
-  after('stop https server', function (done) {
-    httpsServer.close(done)
-  })
-
   it('Test migration - http', function () {
     return basicTest()
       .then(basicStringProfileTest)
@@ -315,9 +250,85 @@ describe('Spring Cloud Configuration Node Client', function () {
       .then(toObjectTest2)
   })
 
-  it('Test migration - https', function () {
-    return httpsSimpleTest()
-      .then(httpsRejectionTest)
-      .then(httpsWithAgent)
+  describe('HTTPS', function () {
+    before('start https server', function (done) {
+      httpsServer.listen(HTTPS_PORT, done)
+    })
+
+    after('stop https server', function (done) {
+      httpsServer.close(done)
+    })
+
+    function httpsSimpleTest () {
+      return Client.load({
+        endpoint: HTTPS_ENDPOINT,
+        rejectUnauthorized: false,
+        profiles: ['test', 'timeout'],
+        name: 'application'
+      }).then(basicAssertions)
+    }
+
+    function httpsWithAgent () {
+      const agent = new https.Agent()
+      const old = agent.createConnection.bind(agent)
+      let used = false
+      agent.createConnection = function (options, callback) {
+        used = true
+        return old(options, callback)
+      }
+      return Client.load({
+        endpoint: HTTPS_ENDPOINT,
+        rejectUnauthorized: false,
+        profiles: ['test', 'timeout'],
+        name: 'application',
+        agent
+      }).then(basicAssertions)
+        .then(() => {
+          assert(used, 'Agent must be used in the call')
+          agent.destroy()
+        })
+    }
+    function httpsRejectionTest () {
+      return Client.load({
+        endpoint: HTTPS_ENDPOINT,
+        profiles: ['test', 'timeout'],
+        name: 'application'
+      }).then(() => {
+        throw new Error('No exception')
+      }, () => { }) // just ignore
+    }
+    it('Test migration - https', function () {
+      return httpsSimpleTest()
+        .then(httpsRejectionTest)
+        .then(httpsWithAgent)
+    })
+  })
+
+  it('replaces references with a context object', function () {
+    const source = {
+      key01: 'Hello',
+      key03: 42,
+      key04: '${MY_USERNAME}', // eslint-disable-line
+      key05: '${MY_USERNAME}-${MY_PASSWORD}', // eslint-disable-line
+      key06: false,
+      key07: null,
+      key08: '${MY_OLD_PASSWORD:super.password}', // eslint-disable-line
+      key09: '${MISSING_KEY}' // eslint-disable-line
+    }
+    nock(ENDPOINT).get('/application/default').reply(200, { propertySources: [{source}] })
+    const expectation = {
+      key01: 'Hello',
+      key03: 42,
+      key04: 'Javier',
+      key05: 'Javier-SecretWord',
+      key06: false,
+      key07: null,
+      key08: 'super.password',
+      key09: '${MISSING_KEY}' // eslint-disable-line
+    }
+    const context = { MY_USERNAME: 'Javier', MY_PASSWORD: 'SecretWord' }
+    return Client.load({ endpoint: ENDPOINT, name: 'application', context }).then(config => {
+      assert.deepStrictEqual(config.toObject(), expectation)
+    })
   })
 })

@@ -30,6 +30,7 @@ const Config = require('./lib/config')
  * @property {string} [label] - environment id
  * @property {module:CloudConfigClient~Auth} [auth] - auth configuration
  * @property {http.Agent|https.Agent} [agent] - Agent for the request. (e.g. use a proxy) (Since version 1.2.0)
+ * @property {object} [context] - Context for substitution (see context section below) (Since version 1.4.0)
  */
 
 /**
@@ -100,6 +101,7 @@ function getPath (path, name, profiles, label) {
 function loadWithCallback (options, callback) {
   const endpoint = options.endpoint ? URL.parse(options.endpoint) : DEFAULT_URL
   const name = options.name || options.application
+  const context = options.context
   const client = endpoint.protocol === 'https:' ? https : http
 
   client.request({
@@ -123,7 +125,7 @@ function loadWithCallback (options, callback) {
     res.on('end', () => {
       try {
         const body = JSON.parse(response)
-        callback(null, new Config(body))
+        callback(null, new Config(body, context))
       } catch (e) {
         callback(e)
       }
