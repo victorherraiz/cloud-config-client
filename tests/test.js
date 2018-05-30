@@ -1,6 +1,11 @@
 'use strict'
 
-const { describe, it, before, after } = require('mocha')
+// const { describe, it, before, after } = require('mocha')
+const mocha = require('mocha')
+const describe = mocha.describe
+const it = mocha.it
+const before = mocha.before
+const after = mocha.after
 const Client = require('..')
 const http = require('http')
 const https = require('https')
