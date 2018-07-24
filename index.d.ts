@@ -8,17 +8,17 @@ declare module 'cloud-config-client' {
     export function load(options: Options, callback?: LoadCallback): Promise<Config|Error>;
 
     export abstract class Config {
-        constructor(data: ConfigData, context: Object);
+        constructor(data: ConfigData, context: { [key: string]: any });
 
-        properties(): Object
+        properties(): { [key: string]: any }
 
-        raw(): Object
+        raw(): { [key: string]: any }
 
         get(keyParts: string): any
 
-        forEach(callback: Function, includeOverridden: boolean): void
+        forEach(callback: (property: string, value: string) => void, includeOverridden: boolean): void
 
-        toObject(): Object
+        toObject(): { [key: string]: any }
 
         toString(spaces: number): string
     }
@@ -48,7 +48,6 @@ declare module 'cloud-config-client' {
 
         /** properties included for application, sorted by more priority */
         propertySources: Array<ConfigFile>
-
     }
 
     interface Spring {
@@ -91,7 +90,7 @@ declare module 'cloud-config-client' {
         agent?: http.Agent|https.Agent
 
         /** Context for substitution */
-        context?: Object
+        context?: { [key: string]: any }
     }
 
     interface LoadCallback {
