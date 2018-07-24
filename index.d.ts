@@ -31,7 +31,7 @@ declare module 'cloud-config-client' {
         source: ConfigSource
     }
 
-    type ConfigSource {
+    type ConfigSource = {
         [key: string]: any
     }
 
