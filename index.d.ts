@@ -16,7 +16,7 @@ declare module 'cloud-config-client' {
 
         get(keyParts: string): any
 
-        forEach(callback: (property: string, value: string) => void, includeOverridden: boolean): void
+        forEach(callback: (property: string, value: string) => void, includeOverridden?: boolean): void
 
         toObject(): { [key: string]: any }
 
