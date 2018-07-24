@@ -31,7 +31,9 @@ declare module 'cloud-config-client' {
         source: ConfigSource
     }
 
-    interface ConfigSource {}
+    type ConfigSource {
+        [key: string]: any
+    }
 
     interface ConfigData {
         /** application name */
@@ -48,12 +50,6 @@ declare module 'cloud-config-client' {
 
         /** properties included for application, sorted by more priority */
         propertySources: Array<ConfigFile>
-    }
-
-    interface Spring {
-        ConfigFile: ConfigFile
-        ConfigData: ConfigData
-        ConfigSource: Map<string, any>
     }
 
     interface Auth {
@@ -94,10 +90,6 @@ declare module 'cloud-config-client' {
     }
 
     interface LoadCallback {
-        /** whether there was an error retrieving configurations */
-        error?: Error
-
-        /** configuration object instance */
-        config?: Config
+        (error: Error, config?: Config): void
     }
 }
