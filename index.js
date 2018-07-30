@@ -103,10 +103,10 @@ function loadWithCallback (options, callback) {
   const name = options.name || options.application
   const context = options.context
   const client = endpoint.protocol === 'https:' ? https : http
-  var token = ""
+  var token = ''
 
-  if ( options.client_id && options.client_secret && options.access_token_uri) {
-    token = fetch_access_token(options.client_id, options.client_secret, options.access_token_uri)
+  if (options.client_id && options.client_secret && options.access_token_uri) {
+    token = fetchAccessToken(options.client_id, options.client_secret, options.access_token_uri)
   }
 
   client.request({
@@ -157,34 +157,34 @@ function loadWithPromise (options) {
   })
 }
 
-function fetch_access_token( client_id, client_secret, token_endpoint) {
+function fetchAccessToken (clientId, clientSecret, tokenEndpoint) {
   // get the access token
-  const endpoint = URL.parse(token_endpoint)
+  const endpoint = URL.parse(tokenEndpoint)
   const client = endpoint.protocol === 'https:' ? https : http
-  const grant_type="client_credentials"
+  const grantType = 'client_credentials'
 
   // curl -X POST -d "client_id=p-config-server-03df5ent_secret=8lRk1OwmzTub&grant_type=client_credentials"
-  const grant_request = "client_id=" + encodeURIComponent(client_id)  + "&client_secret" + encodeURIComponent(client_secret) + "&grant_type=client_credentials"
-  var grant = ""
+  const grantReqContent = 'client_id=' + encodeURIComponent(clientId) + '&client_secret' + encodeURIComponent(clientSecret) + '&grant_type=' + grantType
+  var grant = ''
 
-  token_client.request({
+  client.request({
     protocol: endpoint.protocol,
     hostname: endpoint.hostname,
     port: endpoint.port,
-    method: "POST",
+    method: 'POST',
     headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': Buffer.byteLength(grant_request)
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Length': Buffer.byteLength(grantReqContent)
     }},
-    (res) => {
-      token_response.setEncoding('utf8');
-      res.on('data', function (d) {
-        console.log('Response: ' + d);
-        grant = JSON.parse(d)
-      })
-    });
+  (res) => {
+    res.setEncoding('utf8')
+    res.on('data', function (d) {
+      console.log('Response: ' + d)
+      grant = JSON.parse(d)
+    })
+  })
 
-    return grant.access_token ;
+  return grant.access_token
 }
 
 module.exports = {
