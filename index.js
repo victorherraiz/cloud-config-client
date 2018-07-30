@@ -55,7 +55,7 @@ const Config = require('./lib/config')
 function getAuth (auth, url) {
   if (auth && auth.user && auth.pass) {
     return auth.user + ':' + auth.pass
-  } 
+  }
   return url.auth
 }
 
@@ -103,10 +103,10 @@ function loadWithCallback (options, callback) {
   const name = options.name || options.application
   const context = options.context
   const client = endpoint.protocol === 'https:' ? https : http
+  var token = ""
 
   if ( options.client_id && options.client_secret && options.access_token_uri) {
-    const token = fetch_access_token(options.client_id, options.client_secret, options.access_token_uri)
-
+    token = fetch_access_token(options.client_id, options.client_secret, options.access_token_uri)
   }
 
   client.request({
