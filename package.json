@@ -1,6 +1,6 @@
 {
   "name": "@crdant/cloud-config-client",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Spring Cloud Config Client for NodeJS with OAuth for Spring Cloud Services on PCF",
   "main": "index.js",
   "scripts": {
