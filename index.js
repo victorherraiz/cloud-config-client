@@ -159,12 +159,12 @@ function loadWithPromise (options) {
 
 function fetch_access_token( client_id, client_secret, token_endpoint) {
   // get the access token
-  const endpoint = URL.parse(options.token_endpoint)
+  const endpoint = URL.parse(token_endpoint)
   const client = endpoint.protocol === 'https:' ? https : http
   const grant_type="client_credentials"
 
   // curl -X POST -d "client_id=p-config-server-03df5ent_secret=8lRk1OwmzTub&grant_type=client_credentials"
-  const grant_request = "client_id=" + encodeURIComponent(options.client_id)  + "&client_secret" + encodeURIComponent(options.client_secret) + "&grant_type=client_credentials"
+  const grant_request = "client_id=" + encodeURIComponent(client_id)  + "&client_secret" + encodeURIComponent(client_secret) + "&grant_type=client_credentials"
   var grant = ""
 
   token_client.request({
