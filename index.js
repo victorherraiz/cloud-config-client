@@ -55,7 +55,7 @@ const Config = require('./lib/config')
 function getAuth (auth, url) {
   if (auth && auth.user && auth.pass) {
     return auth.user + ':' + auth.pass
-  }
+  } 
   return url.auth
 }
 
@@ -96,13 +96,18 @@ function getPath (path, name, profiles, label) {
  * Load configuration with callback
  *
  * @param {module:CloudConfigClient~Options} options - spring client configuration options
- * @param {module:CloudConfigClient~loadCallback} [callback] - load callback
+ * @param {module:CloudConfigClient~loadCallback} [callback] - (load) callback
  */
 function loadWithCallback (options, callback) {
   const endpoint = options.endpoint ? URL.parse(options.endpoint) : DEFAULT_URL
   const name = options.name || options.application
   const context = options.context
   const client = endpoint.protocol === 'https:' ? https : http
+
+  if ( options.client_id && options.client_secret && options.access_token_uri) {
+    const token = fetch_access_token(options.client_id, options.client_secret, options.access_token_uri)
+
+  }
 
   client.request({
     protocol: endpoint.protocol,
@@ -111,7 +116,8 @@ function loadWithCallback (options, callback) {
     path: getPath(endpoint.path, name, options.profiles, options.label),
     auth: getAuth(options.auth, endpoint),
     rejectUnauthorized: options.rejectUnauthorized !== false,
-    agent: options.agent
+    agent: options.agent,
+    headers: token ? { 'Authorization': 'Bearer ' + token } : {}
   }, (res) => {
     if (res.statusCode !== 200) { // OK
       res.resume() // it consumes response
@@ -149,6 +155,36 @@ function loadWithPromise (options) {
       }
     })
   })
+}
+
+function fetch_access_token( client_id, client_secret, token_endpoint) {
+  // get the access token
+  const token_endpoint = URL.parse(options.token_endpoint)
+  const token_client = token_endpoint.protocol === 'https:' ? https : http
+  const grant_type="client_credentials"
+
+  // curl -X POST -d "client_id=p-config-server-03df5ent_secret=8lRk1OwmzTub&grant_type=client_credentials"
+  const grant_request = "client_id=" + encodeURIComponent(options.client_id)  + "&client_secret" + encodeURIComponent(options.client_secret) + "&grant_type=client_credentials"
+  var grant = ""
+
+  token_client.request({
+    protocol: token_endpoint.protocol,
+    hostname: token_endpoint.hostname,
+    port: token_endpoint.port,
+    method: "POST",
+    headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Length': Buffer.byteLength(grant_request)
+    }},
+    (res) => {
+      token_response.setEncoding('utf8');
+      res.on('data', function (d) {
+        console.log('Response: ' + d);
+        grant = JSON.parse(d)
+      })
+    });
+
+    return grant.access_token ;
 }
 
 module.exports = {
