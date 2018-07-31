@@ -92,6 +92,48 @@ function getPath (path, name, profiles, label) {
         (label ? '/' + encodeURIComponent(label) : '')
 }
 
+
+function fetchAccessToken (clientId, clientSecret, tokenEndpoint, callback) {
+  // get the access token
+  const endpoint = URL.parse(tokenEndpoint)
+  const client = endpoint.protocol === 'https:' ? https : http
+  const grantType = 'client_credentials'
+
+  const grantReqContent = 'client_id=' + encodeURIComponent(clientId) + '&client_secret=' + encodeURIComponent(clientSecret) + '&grant_type=' + grantType
+  const tokenRequest = client.request({
+    protocol: endpoint.protocol,
+    hostname: endpoint.hostname,
+    path: endpoint.path,
+    port: endpoint.port,
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Content-Length': Buffer.byteLength(grantReqContent)
+    }},
+  (res) => {
+    if (res.statusCode !== 200) { // OK
+      res.resume() // it consumes response
+      return callback(new Error('Invalid response: ' + res.statusCode))
+    }
+    let response = ''
+    res.setEncoding('utf8')
+    res.on('data', (data) => {
+      response += data
+    })
+    res.on('end', () => {
+      try {
+        const grant = JSON.parse(response)
+        callback(null, grant)
+      } catch (e) {
+        callback(e)
+      }
+    })
+  })
+
+  tokenRequest.write(grantReqContent);
+  return tokenRequest.end()
+}
+
 /**
  * Load configuration with callback
  *
@@ -103,11 +145,6 @@ function loadWithCallback (options, callback) {
   const name = options.name || options.application
   const context = options.context
   const client = endpoint.protocol === 'https:' ? https : http
-  var token = ''
-
-  if (options.client_id && options.client_secret && options.access_token_uri) {
-    token = fetchAccessToken(options.client_id, options.client_secret, options.access_token_uri)
-  }
 
   client.request({
     protocol: endpoint.protocol,
@@ -117,7 +154,7 @@ function loadWithCallback (options, callback) {
     auth: getAuth(options.auth, endpoint),
     rejectUnauthorized: options.rejectUnauthorized !== false,
     agent: options.agent,
-    headers: token ? { 'Authorization': 'Bearer ' + token } : {}
+    headers: options.token ? { Authorization: "Bearer " + options.token }: {}
   }, (res) => {
     if (res.statusCode !== 200) { // OK
       res.resume() // it consumes response
@@ -137,6 +174,7 @@ function loadWithCallback (options, callback) {
       }
     })
   }).on('error', callback).end()
+
 }
 
 /**
@@ -157,34 +195,11 @@ function loadWithPromise (options) {
   })
 }
 
-function fetchAccessToken (clientId, clientSecret, tokenEndpoint) {
-  // get the access token
-  const endpoint = URL.parse(tokenEndpoint)
-  const client = endpoint.protocol === 'https:' ? https : http
-  const grantType = 'client_credentials'
 
-  // curl -X POST -d "client_id=p-config-server-03df5ent_secret=8lRk1OwmzTub&grant_type=client_credentials"
-  const grantReqContent = 'client_id=' + encodeURIComponent(clientId) + '&client_secret' + encodeURIComponent(clientSecret) + '&grant_type=' + grantType
-  var grant = ''
-
-  client.request({
-    protocol: endpoint.protocol,
-    hostname: endpoint.hostname,
-    port: endpoint.port,
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Content-Length': Buffer.byteLength(grantReqContent)
-    }},
-  (res) => {
-    res.setEncoding('utf8')
-    res.on('data', function (d) {
-      console.log('Response: ' + d)
-      grant = JSON.parse(d)
-    })
-  })
-
-  return grant.access_token
+function loadConfig(options, callback) {
+  return typeof callback === 'function'
+    ? loadWithCallback(options, callback)
+    : loadWithPromise(options)
 }
 
 module.exports = {
@@ -198,8 +213,25 @@ module.exports = {
      * @since 1.0.0
      */
   load (options, callback) {
-    return typeof callback === 'function'
-      ? loadWithCallback(options, callback)
-      : loadWithPromise(options)
+
+  if (options.client_id && options.client_secret && options.access_token_uri) {
+    return new Promise((resolve, reject) => {
+        fetchAccessToken(options.client_id, options.client_secret, options.access_token_uri,
+          (error, grant) => {
+            if (error) {
+              reject(error)
+            } else {
+              resolve(grant)
+            }
+          }
+        );
+      }).then( ( grant ) => {
+        options.token = grant.access_token;
+        return loadConfig(options,callback);
+      })
+
+    } else {
+      return loadConfig(options,callback);
+    }
   }
 }
