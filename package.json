@@ -1,7 +1,7 @@
 {
-  "name": "cloud-config-client",
-  "version": "1.4.2",
-  "description": "Spring Cloud Config Client for NodeJS",
+  "name": "@crdant/cloud-config-client",
+  "version": "0.1.7",
+  "description": "Spring Cloud Config Client for NodeJS with OAuth for Spring Cloud Services on PCF",
   "main": "index.js",
   "scripts": {
     "lint:fix": "standard --fix",
@@ -23,9 +23,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/victorherraiz/cloud-config-client.git"
+    "url": "https://github.com/crdant/cloud-config-client.git"
   },
-  "author": "Víctor Herraiz Posada <victor.herraiz@gmail.com> (https://github.com/victorherraiz)",
+  "author": "Chuck D'Antonio <cdantonio@pivotal.io> (https://github.com/crdant)",
   "license": "MIT",
   "devDependencies": {
     "jsdoc": "^3.5.5",
