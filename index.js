@@ -92,13 +92,11 @@ function getPath (path, name, profiles, label) {
         (label ? '/' + encodeURIComponent(label) : '')
 }
 
-
 function fetchAccessToken (clientId, clientSecret, tokenEndpoint, callback) {
   // get the access token
   const endpoint = URL.parse(tokenEndpoint)
   const client = endpoint.protocol === 'https:' ? https : http
   const grantType = 'client_credentials'
-
   const grantReqContent = 'client_id=' + encodeURIComponent(clientId) + '&client_secret=' + encodeURIComponent(clientSecret) + '&grant_type=' + grantType
   const tokenRequest = client.request({
     protocol: endpoint.protocol,
@@ -130,7 +128,7 @@ function fetchAccessToken (clientId, clientSecret, tokenEndpoint, callback) {
     })
   })
 
-  tokenRequest.write(grantReqContent);
+  tokenRequest.write(grantReqContent)
   return tokenRequest.end()
 }
 
@@ -145,7 +143,6 @@ function loadWithCallback (options, callback) {
   const name = options.name || options.application
   const context = options.context
   const client = endpoint.protocol === 'https:' ? https : http
-
   client.request({
     protocol: endpoint.protocol,
     hostname: endpoint.hostname,
@@ -154,7 +151,7 @@ function loadWithCallback (options, callback) {
     auth: getAuth(options.auth, endpoint),
     rejectUnauthorized: options.rejectUnauthorized !== false,
     agent: options.agent,
-    headers: options.token ? { Authorization: "Bearer " + options.token }: {}
+    headers: options.token ? { Authorization: 'Bearer ' + options.token } : {}
   }, (res) => {
     if (res.statusCode !== 200) { // OK
       res.resume() // it consumes response
@@ -174,7 +171,6 @@ function loadWithCallback (options, callback) {
       }
     })
   }).on('error', callback).end()
-
 }
 
 /**
@@ -195,11 +191,24 @@ function loadWithPromise (options) {
   })
 }
 
-
-function loadConfig(options, callback) {
+function loadConfig (options, callback) {
   return typeof callback === 'function'
     ? loadWithCallback(options, callback)
     : loadWithPromise(options)
+}
+
+function getGrant (options) {
+  return new Promise((resolve, reject) => {
+    fetchAccessToken(options.client_id, options.client_secret, options.access_token_uri,
+      (error, grant) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve(grant)
+        }
+      }
+    )
+  })
 }
 
 module.exports = {
@@ -213,25 +222,15 @@ module.exports = {
      * @since 1.0.0
      */
   load (options, callback) {
-
-  if (options.client_id && options.client_secret && options.access_token_uri) {
-    return new Promise((resolve, reject) => {
-        fetchAccessToken(options.client_id, options.client_secret, options.access_token_uri,
-          (error, grant) => {
-            if (error) {
-              reject(error)
-            } else {
-              resolve(grant)
-            }
-          }
-        );
-      }).then( ( grant ) => {
-        options.token = grant.access_token;
-        return loadConfig(options,callback);
+    if (options.client_id && options.client_secret && options.access_token_uri) {
+      getGrant(options).then((grant) => {
+        options.token = grant.access_token
+        return loadConfig(options, callback)
+      }).catch(e => {
+        console.error('Could not authenticate with config server: ', e.message)
       })
-
     } else {
-      return loadConfig(options,callback);
+      return loadConfig(options, callback)
     }
   }
 }

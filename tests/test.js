@@ -17,6 +17,8 @@ const HTTPS_PORT = PORT + 1
 const ENDPOINT = 'http://localhost:' + PORT
 const HTTPS_ENDPOINT = 'https://localhost:' + HTTPS_PORT
 const AUTH = 'Basic dXNlcm5hbWU6cGFzc3dvcmQ='
+const OAUTH_CONFIG_ENDPOINT = 'http://localhost:3000'
+const OAUTH_ACCESS_TOKEN_ENDPOINT = 'https://some-oauth-server.com/token'
 
 const DATA = {
   propertySources: [{
@@ -334,6 +336,53 @@ describe('Spring Cloud Configuration Node Client', function () {
     const context = { MY_USERNAME: 'Javier', MY_PASSWORD: 'SecretWord' }
     return Client.load({ endpoint: ENDPOINT, name: 'application', context }).then(config => {
       assert.deepStrictEqual(config.toObject(), expectation)
+    })
+  })
+
+  describe('OAuth workflow', function () {
+    after(function () {
+      nock.cleanAll()
+    })
+    it('fetches config properly when oauth credentials present and token is granted', function () {
+      const options = {
+        endpoint: OAUTH_CONFIG_ENDPOINT,
+        name: 'oauth-app',
+        client_id: 'test123',
+        client_secret: 'secret',
+        access_token_uri: OAUTH_ACCESS_TOKEN_ENDPOINT
+      }
+      const expectation = {
+        key01: 'hello'
+      }
+      const source = expectation
+      nock(OAUTH_CONFIG_ENDPOINT).get('/oauth-app/default').reply(200, { propertySources: [{source}] })
+      nock(OAUTH_ACCESS_TOKEN_ENDPOINT)
+        .post('', function () { return true })
+        .reply(200, JSON.stringify({access_token: '123'}))
+      return Client.load(options, function (error, config) {
+        if (error) {
+          assert.fail()
+        }
+        assert.deepStrictEqual(config.toObject(), expectation)
+      })
+    })
+
+    it('throws an an error when grant is not supplied from oauth server', function () {
+      const options = {
+        endpoint: OAUTH_CONFIG_ENDPOINT,
+        name: 'oauth-app',
+        client_id: 'test123',
+        client_secret: 'secret',
+        access_token_uri: OAUTH_ACCESS_TOKEN_ENDPOINT
+      }
+      nock(OAUTH_ACCESS_TOKEN_ENDPOINT)
+        .post('', function () { return true })
+        .reply(401)
+      return Client.load(options, function (error, config) {
+        if (error) {
+          assert(error.message.startsWith('Could not authenticate'))
+        }
+      })
     })
   })
 })
