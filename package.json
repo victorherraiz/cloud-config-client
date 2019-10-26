@@ -29,10 +29,10 @@
   "author": "Víctor Herraiz Posada <victor.herraiz@gmail.com> (https://github.com/victorherraiz)",
   "license": "MIT",
   "devDependencies": {
-    "jsdoc": "^3.5.5",
-    "mocha": "^5.2.0",
-    "nock": "^9.2.6",
-    "nyc": "^11.8.0",
-    "standard": "^11.0.1"
+    "jsdoc": "^3.6.3",
+    "mocha": "^6.2.2",
+    "nock": "^11.6.0",
+    "nyc": "^14.1.1",
+    "standard": "^14.3.1"
   }
 }

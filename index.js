@@ -6,8 +6,7 @@
 
 const http = require('http')
 const https = require('https')
-const URL = require('url')
-const DEFAULT_URL = URL.parse('http://localhost:8888')
+const DEFAULT_URL = new URL('http://localhost:8888')
 const Config = require('./lib/config')
 
 /**
@@ -56,7 +55,7 @@ function getAuth (auth, url) {
   if (auth && auth.user && auth.pass) {
     return auth.user + ':' + auth.pass
   }
-  return url.auth
+  return url.username + ':' + url.password
 }
 
 /**
@@ -85,7 +84,6 @@ function buildProfilesString (profiles) {
  */
 function getPath (path, name, profiles, label) {
   const profilesStr = buildProfilesString(profiles)
-
   return (path.endsWith('/') ? path : path + '/') +
         encodeURIComponent(name) + '/' +
         encodeURIComponent(profilesStr) +
@@ -99,16 +97,15 @@ function getPath (path, name, profiles, label) {
  * @param {module:CloudConfigClient~loadCallback} [callback] - load callback
  */
 function loadWithCallback (options, callback) {
-  const endpoint = options.endpoint ? URL.parse(options.endpoint) : DEFAULT_URL
+  const endpoint = options.endpoint ? new URL(options.endpoint) : DEFAULT_URL
   const name = options.name || options.application
   const context = options.context
   const client = endpoint.protocol === 'https:' ? https : http
-
   client.request({
     protocol: endpoint.protocol,
     hostname: endpoint.hostname,
     port: endpoint.port,
-    path: getPath(endpoint.path, name, options.profiles, options.label),
+    path: getPath(endpoint.pathname, name, options.profiles, options.label),
     auth: getAuth(options.auth, endpoint),
     rejectUnauthorized: options.rejectUnauthorized !== false,
     agent: options.agent,

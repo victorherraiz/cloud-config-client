@@ -21,14 +21,14 @@ const AUTH = 'Basic dXNlcm5hbWU6cGFzc3dvcmQ='
 const DATA = {
   propertySources: [{
     source: {
-      'key01': 'value01',
-      'key03': null,
+      key01: 'value01',
+      key03: null,
       'key04.key01': 42
     }
   }, {
     source: {
-      'key01': 'banana',
-      'key02': 2
+      key01: 'banana',
+      key02: 2
     }
   }]
 }
@@ -36,8 +36,8 @@ const DATA = {
 const COMPLEX_DATA_1 = {
   propertySources: [{
     source: {
-      'key01': 'value01',
-      'key02': null,
+      key01: 'value01',
+      key02: null,
       'key03.key01[0]': 1,
       'key03.key01[1].data': 2,
       'key03.key02': 3,
@@ -46,9 +46,9 @@ const COMPLEX_DATA_1 = {
   }]
 }
 const COMPLEX_DATA_2 = {
-  'propertySources': [
+  propertySources: [
     {
-      'source': {
+      source: {
         'data.key01[0][0]': 1,
         'data.key01[0][1]': 3,
         'data.key01[1][0]': 4,
@@ -162,7 +162,7 @@ function propertiesTest () {
     name: 'application'
   }).then(config => {
     const properties = config.properties
-    assert.deepEqual(properties,
+    assert.deepStrictEqual(properties,
       { key01: 'value01', key02: 2, key03: null, 'key04.key01': 42 })
   })
 }
@@ -174,7 +174,7 @@ function rawTest () {
     name: 'application'
   }).then(config => {
     const raw = config.raw
-    assert.deepEqual(raw, DATA)
+    assert.deepStrictEqual(raw, DATA)
   })
 }
 
@@ -320,7 +320,7 @@ describe('Spring Cloud Configuration Node Client', function () {
       key08: '${MY_OLD_PASSWORD:super.password}', // eslint-disable-line
       key09: '${MISSING_KEY}' // eslint-disable-line
     }
-    nock(ENDPOINT).get('/application/default').reply(200, { propertySources: [{source}] })
+    nock(ENDPOINT).get('/application/default').reply(200, { propertySources: [{ source }] })
     const expectation = {
       key01: 'Hello',
       key03: 42,
