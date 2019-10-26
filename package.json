@@ -3,6 +3,7 @@
   "version": "1.4.2",
   "description": "Spring Cloud Config Client for NodeJS",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "lint:fix": "standard --fix",
     "lint": "standard",
