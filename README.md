@@ -2,13 +2,13 @@
 
 [![Build Status](https://travis-ci.org/victorherraiz/cloud-config-client.svg?branch=master)](https://travis-ci.org/victorherraiz/cloud-config-client)
 
-Requires: NodeJS 4+
+Requires: NodeJS 8+
 
 Feature requests are welcome.
 
 ## Install
 
-    npm install cloud-config-client --save
+    npm i cloud-config-client
 
 ## Usage
 

@@ -6,6 +6,8 @@
 
 const http = require('http')
 const https = require('https')
+const url = require('url')
+const URL = url.URL
 const DEFAULT_URL = new URL('http://localhost:8888')
 const Config = require('./lib/config')
 
