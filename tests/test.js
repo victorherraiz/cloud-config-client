@@ -208,60 +208,82 @@ function toObjectTest2 () {
 }
 
 describe('Spring Cloud Configuration Node Client', function () {
-  const server = http.createServer((req, res) => {
-    lastURL = req.url
-    lastHeaders = req.headers
-    if (lastURL.startsWith('/complex_data1')) res.end(JSON.stringify(COMPLEX_DATA_1))
-    else if (lastURL.startsWith('/complex_data2')) res.end(JSON.stringify(COMPLEX_DATA_2))
-    else res.end(JSON.stringify(DATA))
+  describe('HTTP Server', function () {
+    before('start http server', function (done) {
+      this.server = http.createServer((req, res) => {
+        lastURL = req.url
+        lastHeaders = req.headers
+        if (lastURL.startsWith('/complex_data1')) res.end(JSON.stringify(COMPLEX_DATA_1))
+        else if (lastURL.startsWith('/complex_data2')) res.end(JSON.stringify(COMPLEX_DATA_2))
+        else res.end(JSON.stringify(DATA))
+      }).listen(PORT, done)
+      this.server.on('clientError', (err, socket) => {
+        console.error(err)
+        socket.end('HTTP/1.1 400 Bad Request\r\n\r\n')
+      })
+    })
+
+    after('stop http server', function (done) {
+      this.server.close(done)
+    })
+
+    it('Test migration - http', function () {
+      return basicTest()
+        .then(basicStringProfileTest)
+        .then(deprecatedTest)
+        .then(explicitAuth)
+        .then(implicitAuth)
+        .then(labelTest)
+        .then(forEachTest)
+        .then(contextPathTest)
+        .then(propertiesTest)
+        .then(rawTest)
+        .then(toObjectTest1)
+        .then(toObjectTest2)
+    })
+    it('replaces references with a context object', function () {
+      const source = {
+        key01: 'Hello',
+        key03: 42,
+        key04: '${MY_USERNAME}', // eslint-disable-line
+        key05: '${MY_USERNAME}-${MY_PASSWORD}', // eslint-disable-line
+        key06: false,
+        key07: null,
+        key08: '${MY_OLD_PASSWORD:super.password}', // eslint-disable-line
+        key09: '${MISSING_KEY}' // eslint-disable-line
+      }
+      nock(ENDPOINT).get('/application/default').reply(200, { propertySources: [{ source }] })
+      const expectation = {
+        key01: 'Hello',
+        key03: 42,
+        key04: 'Javier',
+        key05: 'Javier-SecretWord',
+        key06: false,
+        key07: null,
+        key08: 'super.password',
+        key09: '${MISSING_KEY}' // eslint-disable-line
+      }
+      const context = { MY_USERNAME: 'Javier', MY_PASSWORD: 'SecretWord' }
+      return Client.load({ endpoint: ENDPOINT, name: 'application', context }).then(config => {
+        assert.deepStrictEqual(config.toObject(), expectation)
+      })
+    })
   })
 
-  const httpsOptions = {
-    key: fs.readFileSync('tests/key.pem'),
-    cert: fs.readFileSync('tests/cert.pem')
-  }
-
-  const httpsServer = https.createServer(httpsOptions, (req, res) => {
-    lastURL = req.url
-    lastHeaders = req.headers
-    res.end(JSON.stringify(DATA))
-  })
-
-  server.on('clientError', (err, socket) => {
-    console.error(err)
-    socket.end('HTTP/1.1 400 Bad Request\r\n\r\n')
-  })
-
-  before('start http server', function (done) {
-    server.listen(PORT, done)
-  })
-
-  after('stop http server', function (done) {
-    server.close(done)
-  })
-
-  it('Test migration - http', function () {
-    return basicTest()
-      .then(basicStringProfileTest)
-      .then(deprecatedTest)
-      .then(explicitAuth)
-      .then(implicitAuth)
-      .then(labelTest)
-      .then(forEachTest)
-      .then(contextPathTest)
-      .then(propertiesTest)
-      .then(rawTest)
-      .then(toObjectTest1)
-      .then(toObjectTest2)
-  })
-
-  describe('HTTPS', function () {
+  describe('HTTPS Server', function () {
     before('start https server', function (done) {
-      httpsServer.listen(HTTPS_PORT, done)
+      this.server = https.createServer({
+        key: fs.readFileSync('tests/key.pem'),
+        cert: fs.readFileSync('tests/cert.pem')
+      }, (req, res) => {
+        lastURL = req.url
+        lastHeaders = req.headers
+        res.end(JSON.stringify(DATA))
+      }).listen(HTTPS_PORT, done)
     })
 
     after('stop https server', function (done) {
-      httpsServer.close(done)
+      this.server.close(done)
     })
 
     function httpsSimpleTest () {
@@ -306,34 +328,6 @@ describe('Spring Cloud Configuration Node Client', function () {
       return httpsSimpleTest()
         .then(httpsRejectionTest)
         .then(httpsWithAgent)
-    })
-  })
-
-  it('replaces references with a context object', function () {
-    const source = {
-      key01: 'Hello',
-      key03: 42,
-      key04: '${MY_USERNAME}', // eslint-disable-line
-      key05: '${MY_USERNAME}-${MY_PASSWORD}', // eslint-disable-line
-      key06: false,
-      key07: null,
-      key08: '${MY_OLD_PASSWORD:super.password}', // eslint-disable-line
-      key09: '${MISSING_KEY}' // eslint-disable-line
-    }
-    nock(ENDPOINT).get('/application/default').reply(200, { propertySources: [{ source }] })
-    const expectation = {
-      key01: 'Hello',
-      key03: 42,
-      key04: 'Javier',
-      key05: 'Javier-SecretWord',
-      key06: false,
-      key07: null,
-      key08: 'super.password',
-      key09: '${MISSING_KEY}' // eslint-disable-line
-    }
-    const context = { MY_USERNAME: 'Javier', MY_PASSWORD: 'SecretWord' }
-    return Client.load({ endpoint: ENDPOINT, name: 'application', context }).then(config => {
-      assert.deepStrictEqual(config.toObject(), expectation)
     })
   })
 })
