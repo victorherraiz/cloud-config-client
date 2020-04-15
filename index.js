@@ -6,7 +6,10 @@
 
 const http = require('http')
 const https = require('https')
-const DEFAULT_URL = new URL('http://localhost:8888')
+// Support node 8
+const URL_TYPE = typeof URL === 'undefined' ? require('url').URL : URL
+const DEFAULT_URL = new URL_TYPE('http://localhost:8888')
+
 const Config = require('./lib/config')
 
 /**
@@ -97,7 +100,7 @@ function getPath (path, name, profiles, label) {
  * @param {module:CloudConfigClient~loadCallback} [callback] - load callback
  */
 function loadWithCallback (options, callback) {
-  const endpoint = options.endpoint ? new URL(options.endpoint) : DEFAULT_URL
+  const endpoint = options.endpoint ? new URL_TYPE(options.endpoint) : DEFAULT_URL
   const name = options.name || options.application
   const context = options.context
   const client = endpoint.protocol === 'https:' ? https : http
