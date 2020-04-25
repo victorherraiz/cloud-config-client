@@ -33,6 +33,7 @@ const Config = require('./lib/config')
  * @property {module:CloudConfigClient~Auth} [auth] - auth configuration
  * @property {http.Agent|https.Agent} [agent] - Agent for the request. (e.g. use a proxy) (Since version 1.2.0)
  * @property {object} [context] - Context for substitution (see context section below) (Since version 1.4.0)
+ * @property {object} [headers] - Additional headers
  */
 
 /**

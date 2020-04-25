@@ -87,6 +87,9 @@ declare module 'cloud-config-client' {
 
         /** Context for substitution */
         context?: { [key: string]: any }
+
+        /** Additional headers */
+        headers?: { [key: string]: any }
     }
 
     interface LoadCallback {

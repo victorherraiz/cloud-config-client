@@ -45,6 +45,7 @@ client.load({
     * pass - `string`, mandatory
   * agent - `http.Agent|https.Agent`, optional: Agent for the request. (e.g. use a proxy) (Since version 1.2.0)
   * context - `object`, optional: Context for substitution (see context section below) (Since version 1.4.0)
+  * headers - `object`, optional: Additional request headers (Since version 1.5.0)
 * callback - `function(error: Error, config: Config)`, optional: node style callback. If missing, the method will return a promise.
 
 ```js
