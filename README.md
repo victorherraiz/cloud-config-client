@@ -8,7 +8,9 @@ Feature requests are welcome.
 
 ## Install
 
-    npm i cloud-config-client
+```sh
+npm i cloud-config-client
+```
 
 ## Usage
 
@@ -76,7 +78,7 @@ YAML example:
 key01: Hello ${NAME:World}!!!
 ```
 
-This is not related to spEl and those references are not an expression language. 
+This is not related to spEl and those references are not an expression language.
 
 Reference structure: `${CONTEXT_KEY:DEFAULT_VALUE?}`:
 
