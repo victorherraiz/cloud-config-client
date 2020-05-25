@@ -1,17 +1,12 @@
 'use strict'
 
-// const { describe, it, before, after } = require('mocha')
-const mocha = require('mocha')
-const describe = mocha.describe
-const it = mocha.it
-const before = mocha.before
-const after = mocha.after
+const { describe, it, before, after } = require('mocha')
 const Client = require('..')
 const http = require('http')
 const https = require('https')
 const nock = require('nock')
 const fs = require('fs')
-const assert = require('assert')
+const { equal, deepEqual, ok, rejects } = require('assert').strict
 const PORT = 15023
 const HTTPS_PORT = PORT + 1
 const ENDPOINT = 'http://localhost:' + PORT
@@ -62,149 +57,138 @@ let lastURL = null
 let lastHeaders = null
 
 function basicAssertions (config) {
-  assert.strictEqual(lastURL, '/application/test%2Ctimeout')
-  assert.strictEqual(config.get('key01'), 'value01')
-  assert.strictEqual(config.get('key02'), 2)
-  assert.strictEqual(config.get('key03'), null)
-  assert.strictEqual(config.get('missing'), undefined)
-  assert.strictEqual(config.get('key04.key01'), 42)
-  assert.strictEqual(config.get('key04', 'key01'), 42)
+  equal(lastURL, '/application/test%2Ctimeout')
+  equal(config.get('key01'), 'value01')
+  equal(config.get('key02'), 2)
+  equal(config.get('key03'), null)
+  equal(config.get('missing'), undefined)
+  equal(config.get('key04.key01'), 42)
+  equal(config.get('key04', 'key01'), 42)
 }
 
-function basicTest () {
-  return Client.load({
+async function basicTest () {
+  basicAssertions(await Client.load({
     endpoint: ENDPOINT,
     profiles: ['test', 'timeout'],
     name: 'application'
-  }).then(basicAssertions)
+  }))
 }
 
-function basicStringProfileTest () {
-  return Client.load({
+async function basicStringProfileTest () {
+  basicAssertions(await Client.load({
     endpoint: ENDPOINT,
     profiles: 'test,timeout',
     name: 'application'
-  }).then(basicAssertions)
+  }))
 }
 
-function deprecatedTest () {
-  return Client.load({
+async function deprecatedTest () {
+  await Client.load({
     endpoint: ENDPOINT,
     profiles: ['test', 'timeout'],
     application: 'application'
-  }).then((config) => {
-    assert.strictEqual(lastURL, '/application/test%2Ctimeout')
   })
+  equal(lastURL, '/application/test%2Ctimeout')
 }
 
-function explicitAuth () {
-  return Client.load({
+async function explicitAuth () {
+  const config = await Client.load({
     endpoint: ENDPOINT,
     application: 'application',
     auth: { user: 'username', pass: 'password' }
-  }).then((config) => {
-    assert.strictEqual(lastHeaders.authorization, AUTH)
-    assert.strictEqual(lastURL, '/application/default')
-    assert.strictEqual(config.get('key02'), 2)
   })
+  equal(lastHeaders.authorization, AUTH)
+  equal(lastURL, '/application/default')
+  equal(config.get('key02'), 2)
 }
 
-function implicitAuth () {
-  return Client.load({
+async function implicitAuth () {
+  const config = await Client.load({
     endpoint: 'http://username:password@localhost:' + PORT,
     application: 'application'
-  }).then((config) => {
-    assert.strictEqual(lastHeaders.authorization, AUTH)
-    assert.strictEqual(lastURL, '/application/default')
-    assert.strictEqual(config.get('key02'), 2)
   })
+  equal(lastHeaders.authorization, AUTH)
+  equal(lastURL, '/application/default')
+  equal(config.get('key02'), 2)
 }
 
-function labelTest () {
-  return Client.load({
+async function labelTest () {
+  const config = await Client.load({
     endpoint: ENDPOINT,
     application: 'application',
     label: 'develop'
-  }).then((config) => {
-    assert.strictEqual(lastURL, '/application/default/develop')
-    assert.strictEqual(config.get('key02'), 2)
   })
+  equal(lastURL, '/application/default/develop')
+  equal(config.get('key02'), 2)
 }
 
-function forEachTest () {
-  return Client.load({
+async function forEachTest () {
+  const config = await Client.load({
     endpoint: ENDPOINT,
     profiles: ['test', 'timeout'],
     name: 'application'
-  }).then((config) => {
-    let counter = 0
-    config.forEach((key, value) => counter++)
-    assert.strictEqual(counter, 4)
-    counter = 0
-    config.forEach((key, value) => counter++, true)
-    assert.strictEqual(counter, 5)
   })
+  let counter = 0
+  config.forEach((key, value) => counter++)
+  equal(counter, 4)
+  counter = 0
+  config.forEach((key, value) => counter++, true)
+  equal(counter, 5)
 }
 
-function contextPathTest () {
-  return Client.load({
+async function contextPathTest () {
+  await Client.load({
     endpoint: ENDPOINT + '/justapath',
     name: 'mightyapp'
-  }).then((config) => {
-    assert.strictEqual(lastURL, '/justapath/mightyapp/default')
   })
+  equal(lastURL, '/justapath/mightyapp/default')
 }
 
-function propertiesTest () {
-  return Client.load({
+async function propertiesTest () {
+  const { properties } = await Client.load({
     endpoint: ENDPOINT,
     profiles: ['test', 'timeout'],
     name: 'application'
-  }).then(config => {
-    const properties = config.properties
-    assert.deepStrictEqual(properties,
-      { key01: 'value01', key02: 2, key03: null, 'key04.key01': 42 })
   })
+  const expected = {
+    key01: 'value01',
+    key02: 2,
+    key03: null,
+    'key04.key01': 42
+  }
+  deepEqual(properties, expected)
 }
 
-function rawTest () {
-  return Client.load({
+async function rawTest () {
+  const { raw } = await Client.load({
     endpoint: ENDPOINT,
     profiles: ['test', 'timeout'],
     name: 'application'
-  }).then(config => {
-    const raw = config.raw
-    assert.deepStrictEqual(raw, DATA)
   })
+  deepEqual(raw, DATA)
 }
 
-function toObjectTest1 () {
-  return Client.load({
+async function toObjectTest1 () {
+  const config = await Client.load({
     endpoint: ENDPOINT,
     profiles: ['test'],
     name: 'complex_data1'
-  }).then(config => {
-    const obj = config.toObject()
-    assert.deepStrictEqual(obj, {
-      key01: 'value01',
-      key02: null,
-      key03: { key01: [1, { data: 2 }], key02: 3 },
-      key04: { key01: 42 }
-    })
+  })
+  deepEqual(config.toObject(), {
+    key01: 'value01',
+    key02: null,
+    key03: { key01: [1, { data: 2 }], key02: 3 },
+    key04: { key01: 42 }
   })
 }
 
-function toObjectTest2 () {
-  return Client.load({
+async function toObjectTest2 () {
+  const config = await Client.load({
     endpoint: ENDPOINT,
     profiles: ['test'],
     name: 'complex_data2'
-  }).then(config => {
-    const obj = config.toObject()
-    assert.deepStrictEqual(obj, {
-      data: { key01: [[1, 3], [4, 5]] }
-    })
   })
+  deepEqual(config.toObject(), { data: { key01: [[1, 3], [4, 5]] } })
 }
 
 describe('Spring Cloud Configuration Node Client', function () {
@@ -213,9 +197,11 @@ describe('Spring Cloud Configuration Node Client', function () {
       this.server = http.createServer((req, res) => {
         lastURL = req.url
         lastHeaders = req.headers
-        if (lastURL.startsWith('/complex_data1')) res.end(JSON.stringify(COMPLEX_DATA_1))
-        else if (lastURL.startsWith('/complex_data2')) res.end(JSON.stringify(COMPLEX_DATA_2))
-        else res.end(JSON.stringify(DATA))
+        if (lastURL.startsWith('/complex_data1')) {
+          res.end(JSON.stringify(COMPLEX_DATA_1))
+        } else if (lastURL.startsWith('/complex_data2')) {
+          res.end(JSON.stringify(COMPLEX_DATA_2))
+        } else res.end(JSON.stringify(DATA))
       }).listen(PORT, done)
       this.server.on('clientError', (err, socket) => {
         console.error(err)
@@ -227,21 +213,22 @@ describe('Spring Cloud Configuration Node Client', function () {
       this.server.close(done)
     })
 
-    it('Test migration - http', function () {
-      return basicTest()
-        .then(basicStringProfileTest)
-        .then(deprecatedTest)
-        .then(explicitAuth)
-        .then(implicitAuth)
-        .then(labelTest)
-        .then(forEachTest)
-        .then(contextPathTest)
-        .then(propertiesTest)
-        .then(rawTest)
-        .then(toObjectTest1)
-        .then(toObjectTest2)
+    it('Test migration - http', async function () {
+      // TODO move to promise all
+      await basicTest()
+      await basicStringProfileTest()
+      await deprecatedTest()
+      await explicitAuth()
+      await implicitAuth()
+      await labelTest()
+      await forEachTest()
+      await contextPathTest()
+      await propertiesTest()
+      await rawTest()
+      await toObjectTest1()
+      await toObjectTest2()
     })
-    it('replaces references with a context object', function () {
+    it('replaces references with a context object', async function () {
       const source = {
         key01: 'Hello',
         key03: 42,
@@ -252,7 +239,8 @@ describe('Spring Cloud Configuration Node Client', function () {
         key08: '${MY_OLD_PASSWORD:super.password}', // eslint-disable-line
         key09: '${MISSING_KEY}' // eslint-disable-line
       }
-      nock(ENDPOINT).get('/application/default').reply(200, { propertySources: [{ source }] })
+      nock(ENDPOINT).get('/application/default')
+        .reply(200, { propertySources: [{ source }] })
       const expectation = {
         key01: 'Hello',
         key03: 42,
@@ -264,9 +252,9 @@ describe('Spring Cloud Configuration Node Client', function () {
         key09: '${MISSING_KEY}' // eslint-disable-line
       }
       const context = { MY_USERNAME: 'Javier', MY_PASSWORD: 'SecretWord' }
-      return Client.load({ endpoint: ENDPOINT, name: 'application', context }).then(config => {
-        assert.deepStrictEqual(config.toObject(), expectation)
-      })
+      const config = await Client
+        .load({ endpoint: ENDPOINT, name: 'application', context })
+      deepEqual(config.toObject(), expectation)
     })
   })
 
@@ -286,16 +274,16 @@ describe('Spring Cloud Configuration Node Client', function () {
       this.server.close(done)
     })
 
-    function httpsSimpleTest () {
-      return Client.load({
+    async function httpsSimpleTest () {
+      basicAssertions(await Client.load({
         endpoint: HTTPS_ENDPOINT,
         rejectUnauthorized: false,
         profiles: ['test', 'timeout'],
         name: 'application'
-      }).then(basicAssertions)
+      }))
     }
 
-    function httpsWithAgent () {
+    async function httpsWithAgent () {
       const agent = new https.Agent()
       const old = agent.createConnection.bind(agent)
       let used = false
@@ -303,31 +291,30 @@ describe('Spring Cloud Configuration Node Client', function () {
         used = true
         return old(options, callback)
       }
-      return Client.load({
+      const config = await Client.load({
         endpoint: HTTPS_ENDPOINT,
         rejectUnauthorized: false,
         profiles: ['test', 'timeout'],
         name: 'application',
         agent
-      }).then(basicAssertions)
-        .then(() => {
-          assert(used, 'Agent must be used in the call')
-          agent.destroy()
-        })
+      })
+      basicAssertions(config)
+      ok(used, 'Agent must be used in the call')
+      agent.destroy()
     }
-    function httpsRejectionTest () {
-      return Client.load({
+
+    async function httpsRejectionTest () {
+      rejects(Client.load({
         endpoint: HTTPS_ENDPOINT,
         profiles: ['test', 'timeout'],
         name: 'application'
-      }).then(() => {
-        throw new Error('No exception')
-      }, () => { }) // just ignore
+      }))
     }
-    it('Test migration - https', function () {
-      return httpsSimpleTest()
-        .then(httpsRejectionTest)
-        .then(httpsWithAgent)
+
+    it('Test migration - https', async function () {
+      await httpsSimpleTest()
+      await httpsRejectionTest()
+      await httpsWithAgent()
     })
   })
 })

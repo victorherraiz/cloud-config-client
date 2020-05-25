@@ -5,7 +5,6 @@
   "main": "index.js",
   "types": "index.d.ts",
   "scripts": {
-    "lint:fix": "standard --fix",
     "lint": "standard",
     "test:unit": "mocha tests/test.js",
     "test": "npm run lint && nyc npm run test:unit",
