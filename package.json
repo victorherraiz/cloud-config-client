@@ -6,7 +6,7 @@
   "types": "index.d.ts",
   "scripts": {
     "lint": "standard",
-    "test:unit": "mocha tests/test.js",
+    "test:unit": "mocha tests/*.spec.js",
     "test": "npm run lint && nyc npm run test:unit",
     "doc": "jsdoc index.js lib --pedantic --verbose -R README.md -d doc"
   },
