@@ -250,7 +250,7 @@ describe('Spring Cloud Configuration Node Client', function () {
     }
 
     async function httpsRejectionTest () {
-      rejects(Client.load({
+      await rejects(() => Client.load({
         endpoint,
         profiles: ['test', 'timeout'],
         name: 'application'
