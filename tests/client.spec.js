@@ -1,8 +1,8 @@
 'use strict'
 
-const { describe, it, before, after } = require('mocha')
+const { describe, it, before, after,afterEach, beforeEach } = require('mocha')
 const Client = require('..')
-const nock = require('nock')
+// const nock = require('nock')
 const { equal, deepEqual, ok, rejects } = require('assert').strict
 const AUTH = 'Basic dXNlcm5hbWU6cGFzc3dvcmQ='
 const { DATA, COMPLEX_DATA_1, COMPLEX_DATA_2, SUBSTITUTION } =
@@ -26,24 +26,28 @@ describe('Spring Cloud Configuration Node Client', function () {
     const http = require('http')
     const port = 15023
     const endpoint = 'http://localhost:' + port
+    let server;
+
     before('start http server', function (done) {
-      this.server = http.createServer((req, res) => {
+      server = http.createServer((req, res) => {
         lastURL = req.url
         lastHeaders = req.headers
         if (lastURL.startsWith('/complex_data1')) {
           res.end(JSON.stringify(COMPLEX_DATA_1))
         } else if (lastURL.startsWith('/complex_data2')) {
           res.end(JSON.stringify(COMPLEX_DATA_2))
+        } else if (lastURL.startsWith('/substitution')) {
+          res.end(JSON.stringify(SUBSTITUTION))
         } else res.end(JSON.stringify(DATA))
       }).listen(port, done)
-      this.server.on('clientError', (err, socket) => {
+      server.on('clientError', (err, socket) => {
         console.error(err)
         socket.end('HTTP/1.1 400 Bad Request\r\n\r\n')
       })
     })
 
     after('stop http server', function (done) {
-      this.server.close(done)
+      server.close(done)
     })
 
     it('supports basic call', async function () {
@@ -92,7 +96,7 @@ describe('Spring Cloud Configuration Node Client', function () {
       equal(config.get('key02'), 2)
     })
 
-    async function labelTest () {
+    it('supports label property to get config by environment', async function () {
       const config = await Client.load({
         endpoint,
         name: 'application',
@@ -100,44 +104,15 @@ describe('Spring Cloud Configuration Node Client', function () {
       })
       equal(lastURL, '/application/default/develop')
       equal(config.get('key02'), 2)
-    }
+    })
 
-    async function forEachTest () {
-      const config = await Client.load({
-        endpoint,
-        profiles: ['test', 'timeout'],
-        name: 'application'
-      })
-      let counter = 0
-      config.forEach((key, value) => counter++)
-      equal(counter, 4)
-      counter = 0
-      config.forEach((key, value) => counter++, true)
-      equal(counter, 5)
-    }
-
-    async function contextPathTest () {
+    it('supports custom endpoint path', async function () {
       await Client.load({
         endpoint: endpoint + '/justapath',
         name: 'mightyapp'
       })
       equal(lastURL, '/justapath/mightyapp/default')
-    }
-
-    async function propertiesTest () {
-      const { properties } = await Client.load({
-        endpoint,
-        profiles: ['test', 'timeout'],
-        name: 'application'
-      })
-      const expected = {
-        key01: 'value01',
-        key02: 2,
-        key03: null,
-        'key04.key01': 42
-      }
-      deepEqual(properties, expected)
-    }
+    })
 
     it('returns a config with raw property', async function () {
       const { raw } = await Client.load({
@@ -148,40 +123,98 @@ describe('Spring Cloud Configuration Node Client', function () {
       deepEqual(raw, DATA)
     })
 
-    async function toObjectTest1 () {
-      const config = await Client.load({
-        endpoint,
-        profiles: ['test'],
-        name: 'complex_data1'
-      })
-      deepEqual(config.toObject(), {
-        key01: 'value01',
-        key02: null,
-        key03: { key01: [1, { data: 2 }], key02: 3 },
-        key04: { key01: 42 }
-      })
-    }
+    describe('CloudConfigClient', function () {
+      describe('forEach method', function() {
+        it('iterates over distinct configuration properties by default', async function() {
+          const config = await Client.load({
+            endpoint,
+            profiles: ['test', 'timeout'],
+            name: 'application'
+          })
+          let counter = 0
+          const uniqueKeys = new Set()
+          config.forEach((key) => {
+            uniqueKeys.add(key)
+            counter++
+          })
 
-    async function toObjectTest2 () {
-      const config = await Client.load({
-        endpoint,
-        profiles: ['test'],
-        name: 'complex_data2'
-      })
-      deepEqual(config.toObject(), { data: { key01: [[1, 3], [4, 5]] } })
-    }
+          equal(uniqueKeys.size, 4)
+          equal(counter, 4)
+        })
 
-    it('Test migration - http', async function () {
-      await labelTest()
-      await forEachTest()
-      await contextPathTest()
-      await propertiesTest()
-      await toObjectTest1()
-      await toObjectTest2()
+        it('iterates over overridden configuration properties if second param set to `true`', async function() {
+          const config = await Client.load({
+            endpoint,
+            profiles: ['test', 'timeout'],
+            name: 'application'
+          })
+          let counter = 0
+          const uniqueKeys = new Set()
+          config.forEach((key) => {
+            uniqueKeys.add(key)
+            counter++
+          }, true)
+
+          equal(uniqueKeys.size, 4)
+          equal(counter, 5)
+        })
+      })
+
+      describe('`properties` prop', function () {
+        it('take key value from more specific propertySources ignoring less specific', async function () {
+          const config = await Client.load({
+            endpoint,
+            profiles: ['test', 'timeout'],
+            name: 'application'
+          })
+
+          const overriddenKey = 'key01'
+          let overriddenValues = []
+          config.forEach((key, value) => {
+            if (key === overriddenKey) {
+              overriddenValues.push(value)
+            }
+          }, true)
+
+          equal(overriddenValues.length, 2)
+          const expected = {
+            key01: overriddenValues[0],
+            key02: 2,
+            key03: null,
+            'key04.key01': 42
+          }
+          deepEqual(config.properties, expected)
+        })
+      })
+
+      describe('toObject method', function() {
+        it('responses with JS object with all the unique keys from properties', async function() {
+          const config = await Client.load({
+            endpoint,
+            profiles: ['test'],
+            name: 'complex_data1'
+          })
+          deepEqual(config.toObject(), {
+            key01: 'value01',
+            key02: null,
+            key03: { key01: [1, { data: 2 }], key02: 3 },
+            key04: { key01: 42 }
+          })
+        })
+
+        it('processes nested structures correctly', async function() {
+          const config = await Client.load({
+            endpoint,
+            profiles: ['test'],
+            name: 'complex_data2'
+          })
+          deepEqual(config.toObject(), { data: { key01: [[1, 3], [4, 5]] } })
+        })
+      })
+
     })
 
     it('replaces references with a context object', async function () {
-      nock(endpoint).get('/application/default').reply(200, SUBSTITUTION)
       const expectation = {
         key01: 'Hello',
         key03: 42,
@@ -194,7 +227,7 @@ describe('Spring Cloud Configuration Node Client', function () {
       }
       const context = { MY_USERNAME: 'Javier', MY_PASSWORD: 'SecretWord' }
       const config = await Client
-        .load({ endpoint, name: 'application', context })
+        .load({ endpoint, name: 'substitution', context })
       deepEqual(config.toObject(), expectation)
     })
   })
