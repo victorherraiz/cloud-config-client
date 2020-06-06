@@ -124,6 +124,45 @@ describe('Spring Cloud Configuration Node Client', function () {
     })
 
     describe('CloudConfigClient', function () {
+      describe('`properties` prop', function () {
+        it('take key value from more specific propertySources ignoring less specific', async function () {
+          const config = await Client.load({
+            endpoint,
+            profiles: ['test', 'timeout'],
+            name: 'application'
+          })
+
+          const overriddenKey = 'key01'
+          const overriddenValues = []
+          DATA.propertySources.forEach(({ source }) => {
+            if (overriddenKey in source) {
+              overriddenValues.push(source[overriddenKey])
+            }
+          }, true)
+
+          equal(overriddenValues.length, 2)
+          const expected = {
+            key01: overriddenValues[0],
+            key02: 2,
+            key03: null,
+            'key04.key01': 42
+          }
+          deepEqual(config.properties, expected)
+        })
+      })
+
+      describe('`raw` prop', function () {
+        it('contains raw data from Spring Cloud Config', async function () {
+          const config = await Client.load({
+            endpoint,
+            profiles: ['test', 'timeout'],
+            name: 'application'
+          })
+
+          deepEqual(config.raw, DATA)
+        })
+      })
+
       describe('forEach method', function () {
         it('iterates over distinct configuration properties by default', async function () {
           const config = await Client.load({
@@ -160,8 +199,8 @@ describe('Spring Cloud Configuration Node Client', function () {
         })
       })
 
-      describe('`properties` prop', function () {
-        it('take key value from more specific propertySources ignoring less specific', async function () {
+      describe('get method', function () {
+        it('returns value of the given key from the most specific property source', async function () {
           const config = await Client.load({
             endpoint,
             profiles: ['test', 'timeout'],
@@ -170,20 +209,16 @@ describe('Spring Cloud Configuration Node Client', function () {
 
           const overriddenKey = 'key01'
           const overriddenValues = []
-          config.forEach((key, value) => {
-            if (key === overriddenKey) {
-              overriddenValues.push(value)
+          DATA.propertySources.forEach(({ source }) => {
+            if (overriddenKey in source) {
+              overriddenValues.push(source[overriddenKey])
             }
           }, true)
 
           equal(overriddenValues.length, 2)
-          const expected = {
-            key01: overriddenValues[0],
-            key02: 2,
-            key03: null,
-            'key04.key01': 42
-          }
-          deepEqual(config.properties, expected)
+          // the most specific value goes first in the list of all values of the same key
+          equal(config.get(overriddenKey), overriddenValues[0])
+          equal(config.get('key02'), 2)
         })
       })
 
