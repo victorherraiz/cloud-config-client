@@ -1,6 +1,6 @@
 'use strict'
 
-const { describe, it, before, after,afterEach, beforeEach } = require('mocha')
+const { describe, it, before, after } = require('mocha')
 const Client = require('..')
 // const nock = require('nock')
 const { equal, deepEqual, ok, rejects } = require('assert').strict
@@ -26,7 +26,7 @@ describe('Spring Cloud Configuration Node Client', function () {
     const http = require('http')
     const port = 15023
     const endpoint = 'http://localhost:' + port
-    let server;
+    let server
 
     before('start http server', function (done) {
       server = http.createServer((req, res) => {
@@ -124,8 +124,8 @@ describe('Spring Cloud Configuration Node Client', function () {
     })
 
     describe('CloudConfigClient', function () {
-      describe('forEach method', function() {
-        it('iterates over distinct configuration properties by default', async function() {
+      describe('forEach method', function () {
+        it('iterates over distinct configuration properties by default', async function () {
           const config = await Client.load({
             endpoint,
             profiles: ['test', 'timeout'],
@@ -142,7 +142,7 @@ describe('Spring Cloud Configuration Node Client', function () {
           equal(counter, 4)
         })
 
-        it('iterates over overridden configuration properties if second param set to `true`', async function() {
+        it('iterates over overridden configuration properties if second param set to `true`', async function () {
           const config = await Client.load({
             endpoint,
             profiles: ['test', 'timeout'],
@@ -169,7 +169,7 @@ describe('Spring Cloud Configuration Node Client', function () {
           })
 
           const overriddenKey = 'key01'
-          let overriddenValues = []
+          const overriddenValues = []
           config.forEach((key, value) => {
             if (key === overriddenKey) {
               overriddenValues.push(value)
@@ -187,8 +187,8 @@ describe('Spring Cloud Configuration Node Client', function () {
         })
       })
 
-      describe('toObject method', function() {
-        it('responses with JS object with all the unique keys from properties', async function() {
+      describe('toObject method', function () {
+        it('responses with JS object with all the unique keys from properties', async function () {
           const config = await Client.load({
             endpoint,
             profiles: ['test'],
@@ -202,7 +202,7 @@ describe('Spring Cloud Configuration Node Client', function () {
           })
         })
 
-        it('processes nested structures correctly', async function() {
+        it('processes nested structures correctly', async function () {
           const config = await Client.load({
             endpoint,
             profiles: ['test'],
@@ -211,7 +211,6 @@ describe('Spring Cloud Configuration Node Client', function () {
           deepEqual(config.toObject(), { data: { key01: [[1, 3], [4, 5]] } })
         })
       })
-
     })
 
     it('replaces references with a context object', async function () {
@@ -254,13 +253,13 @@ describe('Spring Cloud Configuration Node Client', function () {
     })
 
     it('works as expected', async function () {
-        basicAssertions(await Client.load({
-          endpoint,
-          rejectUnauthorized: false,
-          profiles: ['test', 'timeout'],
-          name: 'application'
-        }))
-      }
+      basicAssertions(await Client.load({
+        endpoint,
+        rejectUnauthorized: false,
+        profiles: ['test', 'timeout'],
+        name: 'application'
+      }))
+    }
     )
 
     it('rejects the connection if not authorized', async function () {
@@ -272,23 +271,23 @@ describe('Spring Cloud Configuration Node Client', function () {
     })
 
     it('supports calls via proxy agent', async function () {
-        const agent = new https.Agent()
-        const old = agent.createConnection.bind(agent)
-        let used = false
-        agent.createConnection = function (options, callback) {
-          used = true
-          return old(options, callback)
-        }
-        const config = await Client.load({
-          endpoint,
-          rejectUnauthorized: false,
-          profiles: ['test', 'timeout'],
-          name: 'application',
-          agent
-        })
-        basicAssertions(config)
-        ok(used, 'Agent must be used in the call')
-        agent.destroy()
+      const agent = new https.Agent()
+      const old = agent.createConnection.bind(agent)
+      let used = false
+      agent.createConnection = function (options, callback) {
+        used = true
+        return old(options, callback)
+      }
+      const config = await Client.load({
+        endpoint,
+        rejectUnauthorized: false,
+        profiles: ['test', 'timeout'],
+        name: 'application',
+        agent
+      })
+      basicAssertions(config)
+      ok(used, 'Agent must be used in the call')
+      agent.destroy()
     })
   })
 })
