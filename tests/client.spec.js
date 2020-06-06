@@ -253,47 +253,42 @@ describe('Spring Cloud Configuration Node Client', function () {
       this.server.close(done)
     })
 
-    async function httpsSimpleTest () {
-      basicAssertions(await Client.load({
-        endpoint,
-        rejectUnauthorized: false,
-        profiles: ['test', 'timeout'],
-        name: 'application'
-      }))
-    }
-
-    async function httpsWithAgent () {
-      const agent = new https.Agent()
-      const old = agent.createConnection.bind(agent)
-      let used = false
-      agent.createConnection = function (options, callback) {
-        used = true
-        return old(options, callback)
+    it('works as expected', async function () {
+        basicAssertions(await Client.load({
+          endpoint,
+          rejectUnauthorized: false,
+          profiles: ['test', 'timeout'],
+          name: 'application'
+        }))
       }
-      const config = await Client.load({
-        endpoint,
-        rejectUnauthorized: false,
-        profiles: ['test', 'timeout'],
-        name: 'application',
-        agent
-      })
-      basicAssertions(config)
-      ok(used, 'Agent must be used in the call')
-      agent.destroy()
-    }
+    )
 
-    async function httpsRejectionTest () {
+    it('rejects the connection if not authorized', async function () {
       await rejects(() => Client.load({
         endpoint,
         profiles: ['test', 'timeout'],
         name: 'application'
       }))
-    }
+    })
 
-    it('Test migration - https', async function () {
-      await httpsSimpleTest()
-      await httpsRejectionTest()
-      await httpsWithAgent()
+    it('supports calls via proxy agent', async function () {
+        const agent = new https.Agent()
+        const old = agent.createConnection.bind(agent)
+        let used = false
+        agent.createConnection = function (options, callback) {
+          used = true
+          return old(options, callback)
+        }
+        const config = await Client.load({
+          endpoint,
+          rejectUnauthorized: false,
+          profiles: ['test', 'timeout'],
+          name: 'application',
+          agent
+        })
+        basicAssertions(config)
+        ok(used, 'Agent must be used in the call')
+        agent.destroy()
     })
   })
 })
