@@ -113,18 +113,34 @@ Client.load({
   * parts - `string`, variable, mandatory:
 * `forEach(callback, includeOverridden)`: Iterates over every key/value in the config.
   * callback - `function(key: string, value: string)`, mandatory: iteration callback.
-  * includeOverridden - `boolean`, optional, default=`false`: if true, include overridden keys.
+  * includeOverridden - `boolean`, optional, default=`false`: if true, include overridden keys or `replace`.
+  
+```js
+  config.get("this.is.a.key");
+  config.get("this.is", "a.key");
+  config.get("this", "is", "a", "key");
+  
+  config.forEach((key, value) => console.log(key + ":" + value));
+```
+  
 * `toString(spaces): string`: Returns a string representation of `raw` property.
   * spaces - `number`, optional: spaces to use in format.
-* `toObject(): object`: Returns the whole configuration as an object. (Since version 1.3.0)
-
+* `toObject([options]): object`: Returns the whole configuration as an object. (Since version 1.3.0).
+  * `options.overlappingArrays` — specify strategy to process overlapping arrays:
+    * `merge` — default behaviour, merge overlapping lists
+    * `replace` — use only the array from the most specific property source:
+    
 ```js
-config.get("this.is.a.key");
-config.get("this.is", "a.key");
-config.get("this", "is", "a", "key");
+// Simplified data from Spring Cloud Config:
+// [
+//  {"key01[0]" : 5}, // ← the most specific property source
+//  {"key01[0]" : "string1", "key01[1]" : "string2"}
+// ]
 
-config.forEach((key, value) => console.log(key + ":" + value));
-```
+ config.toObject({overlappingArrays:'merge'}) // {"key01[0]": 5, "key01[1]": "string2"}
+ config.toObject({overlappingArrays:'replace'}) // {"key01[0]": 5}
+``` 
+  
 
 ## Behind a proxy
 
