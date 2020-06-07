@@ -2,10 +2,9 @@
 
 const { describe, it, before, after } = require('mocha')
 const Client = require('..')
-// const nock = require('nock')
 const { equal, deepEqual, ok, rejects } = require('assert').strict
 const AUTH = 'Basic dXNlcm5hbWU6cGFzc3dvcmQ='
-const { DATA, COMPLEX_DATA_1, COMPLEX_DATA_2, SUBSTITUTION } =
+const { DATA, COMPLEX_DATA_1, COMPLEX_DATA_2, SUBSTITUTION, OVERLAPPING_LISTS } =
   require('./fixtures.json')
 
 let lastURL = null
@@ -38,6 +37,8 @@ describe('Spring Cloud Configuration Node Client', function () {
           res.end(JSON.stringify(COMPLEX_DATA_2))
         } else if (lastURL.startsWith('/substitution')) {
           res.end(JSON.stringify(SUBSTITUTION))
+        } else if (lastURL.startsWith('/overlapping_lists')) {
+          res.end(JSON.stringify(OVERLAPPING_LISTS))
         } else res.end(JSON.stringify(DATA))
       }).listen(port, done)
       server.on('clientError', (err, socket) => {
@@ -142,10 +143,10 @@ describe('Spring Cloud Configuration Node Client', function () {
 
           equal(overriddenValues.length, 2)
           const expected = {
+            'key04.key01': 42,
             key01: overriddenValues[0],
             key02: 2,
-            key03: null,
-            'key04.key01': 42
+            key03: null
           }
           deepEqual(config.properties, expected)
         })
@@ -244,6 +245,36 @@ describe('Spring Cloud Configuration Node Client', function () {
             name: 'complex_data2'
           })
           deepEqual(config.toObject(), { data: { key01: [[1, 3], [4, 5]] } })
+        })
+
+        it('merges arrays if less specific property resource contains same key with bigger array', async function () {
+          const config = await Client.load({
+            endpoint,
+            profiles: ['test', 'timeout'],
+            name: 'overlapping_lists'
+          })
+
+          const objConfig = config.toObject()
+
+          deepEqual(objConfig.key01, ['four', 'two', 'three'])
+          deepEqual(objConfig.key02, [1, 2, 3])
+          deepEqual(objConfig.key03, [1, 2])
+          deepEqual(objConfig.key05, [[100, 101], [200, 80]])
+        })
+
+        it('replaces less specific arrays if option `overlappingArrays` is set to `replace`', async function () {
+          const config = await Client.load({
+            endpoint,
+            profiles: ['test', 'timeout'],
+            name: 'overlapping_lists'
+          })
+
+          const objConfig = config.toObject({ overlappingArrays: 'replace' })
+
+          deepEqual(objConfig.key01, ['four'])
+          deepEqual(objConfig.key02, [1, 2, 3])
+          deepEqual(objConfig.key03, [1, 2])
+          deepEqual(objConfig.key05, [[100, 101], [200]])
         })
       })
     })

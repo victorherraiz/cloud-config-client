@@ -53,7 +53,41 @@
           "key06": false,
           "key07": null,
           "key08": "${MY_OLD_PASSWORD:super.password}",
-          "key09": "${MISSING_KEY}"   
+          "key09": "${MISSING_KEY}"
+        }
+      }
+    ]
+  },
+  "OVERLAPPING_LISTS": {
+    "propertySources": [
+      {
+        "source": {
+          "key01[0]": "four",
+          "key02[0]": 1,
+          "key02[1]": 2,
+          "key02[2]": 3,
+          "key05[0][0]": 100,
+          "key05[0][1]": 101,
+          "key05[1][0]": 200
+        }
+      },
+      {
+        "source": {
+          "key01[0]": "one",
+          "key01[1]": "two",
+          "key01[2]": "three",
+          "key02[0]": 99,
+          "key05[0]": 100,
+          "key05[1][0]": 90,
+          "key05[1][1]": 80
+        }
+      },
+      {
+        "source": {
+          "key01[0]": "deepest",
+          "key02[0]": "deepest",
+          "key03[0]": 1,
+          "key03[1]": 2
         }
       }
     ]
