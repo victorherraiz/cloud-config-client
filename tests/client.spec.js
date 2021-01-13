@@ -4,7 +4,7 @@ const { describe, it, before, after } = require('mocha')
 const Client = require('..')
 const { equal, deepEqual, ok, rejects } = require('assert').strict
 const AUTH = 'Basic dXNlcm5hbWU6cGFzc3dvcmQ='
-const { DATA, COMPLEX_DATA_1, COMPLEX_DATA_2, SUBSTITUTION, OVERLAPPING_LISTS } =
+const { DATA, COMPLEX_DATA_1, COMPLEX_DATA_2, SUBSTITUTION, OVERLAPPING_LISTS, DYNAMIC_PROPERTY } =
   require('./fixtures.json')
 
 let lastURL = null
@@ -39,6 +39,8 @@ describe('Spring Cloud Configuration Node Client', function () {
           res.end(JSON.stringify(SUBSTITUTION))
         } else if (lastURL.startsWith('/overlapping_lists')) {
           res.end(JSON.stringify(OVERLAPPING_LISTS))
+        } else if (lastURL.startsWith('/dynamic_property')) {
+          res.end(JSON.stringify(DYNAMIC_PROPERTY))
         } else res.end(JSON.stringify(DATA))
       }).listen(port, done)
       server.on('clientError', (err, socket) => {
@@ -293,6 +295,24 @@ describe('Spring Cloud Configuration Node Client', function () {
       const context = { MY_USERNAME: 'Javier', MY_PASSWORD: 'SecretWord' }
       const config = await Client
         .load({ endpoint, name: 'substitution', context })
+      deepEqual(config.toObject(), expectation)
+    })
+
+    it('replaces references with a existing property object', async function () {
+      const expectation = {
+        key01: 'Hello',
+        key03: 42,
+        key04: 'Javier',
+        key05: 'Javier-SecretWord',
+        key06: false,
+        key07: null,
+        key08: 'super.password',
+        key09: '${MISSING_KEY}', // eslint-disable-line
+        key10: 'Hello'
+      }
+      const context = { MY_USERNAME: 'Javier', MY_PASSWORD: 'SecretWord' }
+      const config = await Client
+        .load({ endpoint, name: 'dynamic_property', context })
       deepEqual(config.toObject(), expectation)
     })
   })

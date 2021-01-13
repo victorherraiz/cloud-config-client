@@ -91,5 +91,22 @@
         }
       }
     ]
+  },
+  "DYNAMIC_PROPERTY": {
+    "propertySources": [
+      {
+        "source": {
+          "key01": "Hello",
+          "key03": 42,
+          "key04": "${MY_USERNAME}",
+          "key05": "${MY_USERNAME}-${MY_PASSWORD}",
+          "key06": false,
+          "key07": null,
+          "key08": "${MY_OLD_PASSWORD:super.password}",
+          "key09": "${MISSING_KEY}",
+          "key10": "${key01}"
+        }
+      }
+    ]
   }
 }
