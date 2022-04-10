@@ -254,7 +254,7 @@ describe('Spring Cloud Configuration Node Client', function () {
             name: 'overlapping_lists'
           })
 
-          const objConfig = config.toObject()
+          const objConfig = config.toObject({ merge: true })
 
           deepEqual(objConfig.key01, ['four', 'two', 'three'])
           deepEqual(objConfig.key02, [1, 2, 3])
@@ -262,19 +262,21 @@ describe('Spring Cloud Configuration Node Client', function () {
           deepEqual(objConfig.key05, [[100, 101], [200, 80]])
         })
 
-        it('replaces less specific arrays if option `overlappingArrays` is set to `replace`', async function () {
+        it('replaces less specific arrays if option `merge` is set to `false`', async function () {
           const config = await Client.load({
             endpoint,
             profiles: ['test', 'timeout'],
             name: 'overlapping_lists'
           })
 
-          const objConfig = config.toObject({ overlappingArrays: 'replace' })
+          const objConfig = config.toObject({ merge: false })
 
           deepEqual(objConfig.key01, ['four'])
           deepEqual(objConfig.key02, [1, 2, 3])
           deepEqual(objConfig.key03, [1, 2])
           deepEqual(objConfig.key05, [[100, 101], [200]])
+
+          deepEqual(config.toObject(), objConfig)
         })
       })
     })

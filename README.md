@@ -126,9 +126,9 @@ Client.load({
 * `toString(spaces): string`: Returns a string representation of `raw` property.
   * spaces - `number`, optional: spaces to use in format.
 * `toObject([options]): object`: Returns the whole configuration as an object. (Since version 1.3.0).
-  * `options.overlappingArrays` — specify strategy to process overlapping arrays:
-    * `merge` — default behaviour, merge overlapping lists
-    * `replace` — use only the array from the most specific property source:
+  * `options.merge` — specify strategy to process overlapping arrays:
+    * true —  merge overlapping lists
+    * false — (default) use only the array from the most specific property source:
     
 ```js
 // Simplified data from Spring Cloud Config:
