@@ -10,9 +10,9 @@ declare module 'cloud-config-client' {
     export abstract class Config {
         constructor(data: ConfigData, context: { [key: string]: any });
 
-        properties(): { [key: string]: any }
+        properties: { [key: string]: any }
 
-        raw(): { [key: string]: any }
+        raw: { [key: string]: any }
 
         get(keyParts: string): any
 
