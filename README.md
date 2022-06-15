@@ -24,6 +24,11 @@ client.load({
     const value2 = config.get("this.is", "another.key");
 });
 
+// Or
+
+const config = await client.load({ application: 'invoices' })
+const value1 = config.get("this.is.a.key");
+
 ```
 
 ### `load` function
