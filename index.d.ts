@@ -5,14 +5,14 @@ declare module 'cloud-config-client' {
     import http = require('http');
     import https = require('https');
 
-    export function load(options: Options, callback?: LoadCallback): Promise<Config|Error>;
+    export function load(options: Options, callback?: LoadCallback): Promise<Config>;
 
     export abstract class Config {
         constructor(data: ConfigData, context: { [key: string]: any });
 
-        properties(): { [key: string]: any }
+        properties: { [key: string]: any }
 
-        raw(): { [key: string]: any }
+        raw: { [key: string]: any }
 
         get(keyParts: string): any
 
