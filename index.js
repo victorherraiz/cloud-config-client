@@ -59,7 +59,10 @@ function getAuth (auth, url) {
   if (auth && auth.user && auth.pass) {
     return auth.user + ':' + auth.pass
   }
-  return url.username + ':' + url.password
+  if (url.username || url.password) {
+    return url.username + ':' + url.password
+  }
+  return null
 }
 
 /**

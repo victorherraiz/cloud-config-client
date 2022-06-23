@@ -87,6 +87,14 @@ describe('Spring Cloud Configuration Node Client', function () {
       equal(config.get('key02'), 2)
     })
 
+    it('do not send auth header', async function () {
+      await Client.load({
+        endpoint,
+        name: 'application'
+      })
+      equal(lastHeaders.authorization, undefined)
+    })
+
     it('supports implicit auth (endpoint option)', async function () {
       const config = await Client.load({
         endpoint: 'http://username:password@localhost:' + port,
